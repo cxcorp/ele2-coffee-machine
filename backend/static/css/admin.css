@@ -1,0 +1,21 @@
+.add-event-form__json {
+  vertical-align: top;
+  width: 50%;
+  height: 4em;
+  font-size: 11px;
+  padding: 3px 5px;
+}
+
+.event-list__json-cell {
+  font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', 'Menlo',
+    monospace;
+  font-size: 11px;
+}
+
+.event-list-table thead th {
+  border-top: none;
+}
+
+.event-list__nav .nav-link {
+  border-radius: 0;
+}
