@@ -9,6 +9,7 @@ services:
       - PORT=8000
       - BIND_HOST=0.0.0.0
       - NODE_ENV=production
+      - ALLOWED_USERS=user.test@gmail.com
     ports:
       - "4000:8000"
     init: true
