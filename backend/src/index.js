@@ -29,6 +29,8 @@ if (process.env.NODE_ENV === 'production') {
 app.use('/admin', adminRouter)
 app.use('/api', apiRouter)
 
+app.get('/', (req, res) => res.redirect('/admin'))
+
 app.use('*', (req, res, next) => {
   res
     .type('html')
