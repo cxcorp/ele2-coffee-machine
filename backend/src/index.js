@@ -19,7 +19,9 @@ if (process.env.NODE_ENV === 'production') {
     const email = req.get('Google-User')
     if (!config.ALLOWED_USERS.has(email)) {
       console.log(`Access denied for user ${email}`)
-      return res.render('access-denied')
+      return res.render('access-denied', {
+        signOutHref: config.SIGN_OUT_ENDPOINT
+      })
     }
     next()
   })

@@ -1,5 +1,6 @@
 const express = require('express')
 const bodyParser = require('body-parser')
+const config = require('./config')
 const knex = require('./db')
 
 const adminRouter = express.Router()
@@ -9,7 +10,11 @@ adminRouter.use(bodyParser.urlencoded({ extended: true }))
 adminRouter.get('/', async (req, res) => {
   const sensors = await knex('sensors').select()
   const events = await knex('events').select()
-  res.render('admin', { sensors, events })
+  res.render('admin', {
+    sensors,
+    events,
+    signOutHref: config.SIGN_OUT_ENDPOINT
+  })
 })
 
 adminRouter.post('/sensors', async (req, res) => {

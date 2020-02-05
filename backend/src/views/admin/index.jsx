@@ -4,6 +4,7 @@ const cz = require('classnames')
 const Container = require('react-bootstrap/Container')
 const Row = require('react-bootstrap/Row')
 const Col = require('react-bootstrap/Col')
+const Button = require('react-bootstrap/Button')
 
 const Layout = require('../Layout')
 const AddEventForm = require('./AddEventForm')
@@ -19,7 +20,7 @@ const Block = ({ children, padding = true }) => (
 )
 const SectionTitle = ({ children, ...rest }) => <h2 {...rest}>{children}</h2>
 
-const AdminPage = ({ sensors, events }) => {
+const AdminPage = ({ sensors, events, signOutHref }) => {
   const addSensorAction = '/admin/sensors'
   const deleteSensorAction = sensor => `/admin/sensors/${sensor.id}/delete`
   const addEventAction = '/admin/events'
@@ -39,8 +40,18 @@ const AdminPage = ({ sensors, events }) => {
         <Row className="justify-content-md-center">
           <Col lg={9}>
             <Row className="my-5">
-              <Col>
+              <Col sm={12} md={10}>
                 <h1>Coffee Sensor System Administration</h1>
+              </Col>
+              <Col sm={12} md={2}>
+                <Button
+                  className="mt-3"
+                  as="a"
+                  variant="link"
+                  href={signOutHref}
+                >
+                  Sign out
+                </Button>
               </Col>
             </Row>
 
@@ -88,7 +99,9 @@ const AdminPage = ({ sensors, events }) => {
 }
 
 AdminPage.propTypes = {
-  sensors: PropTypes.arrayOf(PropTypes.shape(propTypes.sensorShape)).isRequired
+  sensors: PropTypes.arrayOf(PropTypes.shape(propTypes.sensorShape)).isRequired,
+  events: PropTypes.arrayOf(PropTypes.shape(propTypes.eventShape)).isRequired,
+  signOutHref: PropTypes.string.isRequired
 }
 
 module.exports = AdminPage

@@ -1,4 +1,5 @@
 const React = require('react')
+const PropTypes = require('prop-types')
 const Container = require('react-bootstrap/Container')
 const Row = require('react-bootstrap/Row')
 const Col = require('react-bootstrap/Col')
@@ -6,7 +7,7 @@ const Button = require('react-bootstrap/Button')
 
 const Layout = require('../Layout')
 
-const AccessDeniedPage = () => {
+const AccessDeniedPage = ({ signOutHref }) => {
   return (
     <Layout title="Access Denied">
       <Container as="main">
@@ -22,7 +23,7 @@ const AccessDeniedPage = () => {
                   className="mt-3"
                   as="a"
                   variant="primary"
-                  href="/_signout"
+                  href={signOutHref}
                 >
                   Sign out
                 </Button>
@@ -33,6 +34,10 @@ const AccessDeniedPage = () => {
       </Container>
     </Layout>
   )
+}
+
+AccessDeniedPage.propTypes = {
+  signOutHref: PropTypes.string.isRequired
 }
 
 module.exports = AccessDeniedPage

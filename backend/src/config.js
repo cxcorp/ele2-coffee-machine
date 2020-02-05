@@ -13,5 +13,6 @@ const allowedUsers = new Set(
 module.exports = {
   PORT: isNaN(port) ? 8000 : port,
   BIND_HOST: process.env.BIND_HOST || '0.0.0.0',
-  ALLOWED_USERS: allowedUsers
+  ALLOWED_USERS: allowedUsers,
+  SIGN_OUT_ENDPOINT: process.env.SIGN_OUT_ENDPOINT || '/_signout'
 }
