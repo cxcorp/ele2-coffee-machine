@@ -13,21 +13,23 @@ app.engine('jsx', ExpressReactViews.createEngine())
 
 app.use('/static', express.static(path.join(__dirname, '../static')))
 
-if (process.env.NODE_ENV === 'production') {
-  // nginx-google-oauth access limiter
-  app.use((req, res, next) => {
-    const email = req.get('Google-User')
-    if (!config.ALLOWED_USERS.has(email)) {
-      console.log(`Access denied for user ${email}`)
-      return res.render('access-denied', {
-        signOutHref: config.SIGN_OUT_ENDPOINT
-      })
-    }
-    next()
-  })
+const googleAuth = (req, res, next) => {
+  const email = req.get('Google-User')
+  if (!config.ALLOWED_USERS.has(email)) {
+    console.log(`Access denied for user ${email}`)
+    return res.render('access-denied', {
+      signOutHref: config.SIGN_OUT_ENDPOINT
+    })
+  }
+  next()
 }
 
-app.use('/admin', adminRouter)
+const authMiddleware =
+  process.env.NODE_ENV === 'production'
+    ? googleAuth
+    : (req, res, next) => next()
+
+app.use('/admin', authMiddleware, adminRouter)
 
 app.get('/', (req, res) => res.redirect('/admin'))
 
