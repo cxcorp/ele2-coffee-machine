@@ -1,6 +1,16 @@
 version: "3.7"
 
 services:
+  backend:
+    image: registry.cxcorp.systems/coffee-system-backend
+    build: ./backend
+    environment:
+      - PG_CONN_STRING=postgres://coffee:123@db/coffee
+      - PORT=8000
+      - BIND_HOST=0.0.0.0
+    ports:
+      - "4000:8000"
+
   db:
     image: postgres:12
     environment:
