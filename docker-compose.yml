@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres:12
+    environment:
+      - "POSTGRES_USER=coffee"
+      - "POSTGRES_PASSWORD=123"
+      - "POSTGRES_DB=coffee"
+    ports:
+      - "5432:5432"
