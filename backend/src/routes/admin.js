@@ -1,7 +1,8 @@
 const express = require('express')
 const bodyParser = require('body-parser')
-const config = require('./config')
-const knex = require('./db')
+
+const config = require('../config')
+const knex = require('../db')
 
 const adminRouter = express.Router()
 

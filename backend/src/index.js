@@ -2,8 +2,9 @@ const express = require('express')
 require('express-async-errors')
 const path = require('path')
 const ExpressReactViews = require('express-react-views')
+
 const config = require('./config')
-const adminRouter = require('./admin')
+const adminRouter = require('./routes/admin')
 
 const app = express()
 
