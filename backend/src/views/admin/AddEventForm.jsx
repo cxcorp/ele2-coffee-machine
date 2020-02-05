@@ -59,7 +59,9 @@ const AddEventForm = ({ sensors, action }) => {
 
       <Row>
         <Form.Group as={Col} controlId="addEventForm.data">
-          <Form.Label>Data</Form.Label>
+          <Form.Label>
+            Data <span className="text-secondary font-italic">(optional)</span>
+          </Form.Label>
           <InputGroup size="sm">
             <InputGroup.Prepend>
               <InputGroup.Text>JSON</InputGroup.Text>
