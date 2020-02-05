@@ -22,7 +22,7 @@ const AccessDeniedPage = () => {
                   className="mt-3"
                   as="a"
                   variant="primary"
-                  href="/_logout"
+                  href="/_signout"
                 >
                   Log out
                 </Button>
