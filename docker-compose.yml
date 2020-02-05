@@ -8,8 +8,12 @@ services:
       - PG_CONN_STRING=postgres://coffee:123@db/coffee
       - PORT=8000
       - BIND_HOST=0.0.0.0
+      - NODE_ENV=production
     ports:
       - "4000:8000"
+    init: true
+    depends_on:
+      - db
 
   db:
     image: postgres:12
