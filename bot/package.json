@@ -4,13 +4,23 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node src/index.ts",
+    "dev": "cross-env NODE_ENV=development nodemon -e ts,js,jsx,json --exec ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "",
   "private": true,
   "dependencies": {
-    "node-telegram-bot-api": "^0.40.0"
+    "@types/node": "^13.7.0",
+    "@types/node-telegram-bot-api": "^0.40.2",
+    "node-telegram-bot-api": "^0.40.0",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.0",
+    "dotenv": "^8.2.0",
+    "nodemon": "^2.0.2"
   }
 }
