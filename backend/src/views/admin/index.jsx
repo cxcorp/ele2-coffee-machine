@@ -38,9 +38,9 @@ const AdminPage = ({ sensors, events }) => {
       <Container as="main" className="admin-page">
         <Row className="justify-content-md-center">
           <Col lg={9}>
-            <Row>
+            <Row className="my-5">
               <Col>
-                <h1 style={{ marginBottom: '2em' }}>Admin</h1>
+                <h1>Coffee Sensor System Administration</h1>
               </Col>
             </Row>
 
