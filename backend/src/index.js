@@ -37,6 +37,7 @@ app.get('/', (req, res) => res.redirect('/admin'))
 app.use('*', (req, res, next) => {
   res
     .type('html')
+    .status(404)
     .send(
       '<!DOCTYPE html><html><head><title>404</title></head><body>Not found</body></html>'
     )
@@ -46,6 +47,7 @@ app.use((err, req, res, next) => {
   console.error(err)
   res
     .type('html')
+    .status(500)
     .send(
       '<!DOCTYPE html><html><head><title>500</title></head><body>Internal server error</body></html>'
     )
