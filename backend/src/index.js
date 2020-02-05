@@ -34,10 +34,10 @@ app.use((err, req, res, next) => {
     )
 })
 
-app.listen(config.PORT, config.HOSTNAME, e => {
+app.listen(config.PORT, config.BIND_HOST, e => {
   if (e) {
     throw e
   }
 
-  console.log(`Server listening on ${config.HOSTNAME}:${config.PORT}`)
+  console.log(`Server listening on ${config.BIND_HOST}:${config.PORT}`)
 })
