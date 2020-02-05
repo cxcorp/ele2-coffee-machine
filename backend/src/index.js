@@ -12,19 +12,19 @@ app.set('views', path.join(__dirname, '/views'))
 app.set('view engine', 'jsx')
 app.engine('jsx', ExpressReactViews.createEngine())
 
+app.use('/static', express.static(path.join(__dirname, '../static')))
+
 if (process.env.NODE_ENV === 'production') {
   // nginx-google-oauth access limiter
   app.use((req, res, next) => {
     const email = req.get('Google-User')
     if (!config.ALLOWED_USERS.has(email)) {
       console.log(`Access denied for user ${email}`)
-      return res.redirect('/_signout')
+      return res.render('access-denied')
     }
     next()
   })
 }
-
-app.use('/static', express.static(path.join(__dirname, '../static')))
 
 app.use('/admin', adminRouter)
 app.use('/api', apiRouter)
