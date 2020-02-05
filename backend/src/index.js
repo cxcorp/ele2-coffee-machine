@@ -4,7 +4,6 @@ const path = require('path')
 const ExpressReactViews = require('express-react-views')
 const config = require('./config')
 const adminRouter = require('./admin')
-const apiRouter = require('./api')
 
 const app = express()
 
@@ -27,7 +26,6 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.use('/admin', adminRouter)
-app.use('/api', apiRouter)
 
 app.get('/', (req, res) => res.redirect('/admin'))
 
