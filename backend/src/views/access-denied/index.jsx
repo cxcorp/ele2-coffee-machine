@@ -24,7 +24,7 @@ const AccessDeniedPage = () => {
                   variant="primary"
                   href="/_signout"
                 >
-                  Log out
+                  Sign out
                 </Button>
               </Col>
             </Row>
