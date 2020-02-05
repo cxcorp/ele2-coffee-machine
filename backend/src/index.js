@@ -5,6 +5,7 @@ const ExpressReactViews = require('express-react-views')
 
 const config = require('./config')
 const adminRouter = require('./routes/admin')
+const apiRouter = require('./routes/api')
 
 const app = express()
 
@@ -31,6 +32,7 @@ const authMiddleware =
     : (req, res, next) => next()
 
 app.use('/admin', authMiddleware, adminRouter)
+app.use('/api', apiRouter)
 
 app.get('/', (req, res) => res.redirect('/admin'))
 
