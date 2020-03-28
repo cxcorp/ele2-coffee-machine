@@ -1,6 +1,48 @@
 version: "3.7"
 
 services:
+  nodered:
+    image: nodered/node-red:1.0.4-12
+    ports:
+      - 1880:1880
+    environment:
+      - TZ=Europe/Helsinki
+      - BASE_URI=http://localhost:1880
+    volumes:
+      - "./nodered-data:/data"
+
+  bot:
+    image: registry.cxcorp.systems/coffee-system-bot
+    build: ./bot
+    init: true
+    environment:
+      - NODE_ENV=production
+      - TZ=Europe/Helsinki
+      - TG_TOKEN=<bot token here>
+      - PG_HOST=db
+      - PG_PORT=5432
+      - PG_USER=coffee
+      - PG_PASSWORD=1234
+      - PG_DATABASE=coffee
+      - NTBA_FIX_350=true
+
+  db:
+    image: postgres:12
+    environment:
+      - TZ=Europe/Helsinki
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_USER=coffee
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=coffee
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:4.7-standalone
+    restart: always
+    ports:
+      - 8080:8080
+
   backend:
     image: registry.cxcorp.systems/coffee-system-backend
     build: ./backend
@@ -18,11 +60,5 @@ services:
     depends_on:
       - db
 
-  db:
-    image: postgres:12
-    environment:
-      - "POSTGRES_USER=coffee"
-      - "POSTGRES_PASSWORD=123"
-      - "POSTGRES_DB=coffee"
-    ports:
-      - "5432:5432"
+volumes:
+  pg-data:
