@@ -43,22 +43,5 @@ services:
     ports:
       - 8080:8080
 
-  backend:
-    image: registry.cxcorp.systems/coffee-system-backend
-    build: ./backend
-    environment:
-      - PG_CONN_STRING=postgres://coffee:123@db/coffee
-      - PORT=8000
-      - BIND_HOST=0.0.0.0
-      - NODE_ENV=production
-      - ALLOWED_USERS=user.test@gmail.com
-      # nginx-google-oauth's signout endpoint
-      - SIGN_OUT_ENDPOINT=/_signout
-    ports:
-      - "4000:8000"
-    init: true
-    depends_on:
-      - db
-
 volumes:
   pg-data:
