@@ -1,0 +1,209 @@
+[
+    {
+        "id": "82fa4d72.9693c",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "8af1e81f.df5b88",
+        "type": "websocket in",
+        "z": "82fa4d72.9693c",
+        "name": "",
+        "server": "adc3ba0f.cf6518",
+        "client": "",
+        "x": 240,
+        "y": 280,
+        "wires": [
+            [
+                "6a11249a.dcb93c",
+                "5945385e.d4a9c8"
+            ]
+        ]
+    },
+    {
+        "id": "6a11249a.dcb93c",
+        "type": "json",
+        "z": "82fa4d72.9693c",
+        "name": "Parse JSON",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 450,
+        "y": 280,
+        "wires": [
+            [
+                "36c2c60c.bb7b6a"
+            ]
+        ]
+    },
+    {
+        "id": "e572e00b.3f46e",
+        "type": "change",
+        "z": "82fa4d72.9693c",
+        "name": "Format SQL insert query",
+        "rules": [
+            {
+                "t": "set",
+                "p": "queryParameters",
+                "pt": "msg",
+                "to": "[payload.timestamp, payload.weight]",
+                "tot": "jsonata"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "INSERT INTO weight (timestamp, weight) VALUES ($1, $2)",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 670,
+        "y": 380,
+        "wires": [
+            [
+                "d64920b2.7efe3",
+                "9be74ef7.3dc8b"
+            ]
+        ]
+    },
+    {
+        "id": "d64920b2.7efe3",
+        "type": "debug",
+        "z": "82fa4d72.9693c",
+        "name": "debug log",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 900,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "36c2c60c.bb7b6a",
+        "type": "change",
+        "z": "82fa4d72.9693c",
+        "name": "Add timestamp",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "{ \"timestamp\": $now(), \"weight\": payload }",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 640,
+        "y": 280,
+        "wires": [
+            [
+                "e572e00b.3f46e",
+                "cf85e2c5.70f33"
+            ]
+        ]
+    },
+    {
+        "id": "9be74ef7.3dc8b",
+        "type": "postgres",
+        "z": "82fa4d72.9693c",
+        "postgresdb": "28873623.d0d22a",
+        "name": "",
+        "output": false,
+        "perrow": false,
+        "rowspermsg": "1",
+        "outputs": 0,
+        "x": 900,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "cf85e2c5.70f33",
+        "type": "debug",
+        "z": "82fa4d72.9693c",
+        "name": "debug log",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "x": 900,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "26252ac.ff46dd6",
+        "type": "catch",
+        "z": "82fa4d72.9693c",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 220,
+        "y": 60,
+        "wires": [
+            [
+                "e4dc5252.922d4"
+            ]
+        ]
+    },
+    {
+        "id": "e4dc5252.922d4",
+        "type": "debug",
+        "z": "82fa4d72.9693c",
+        "name": "debug log",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 380,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "5945385e.d4a9c8",
+        "type": "debug",
+        "z": "82fa4d72.9693c",
+        "name": "debug log",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 440,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "adc3ba0f.cf6518",
+        "type": "websocket-listener",
+        "z": "",
+        "path": "/ws/weight",
+        "wholemsg": "false"
+    },
+    {
+        "id": "28873623.d0d22a",
+        "type": "postgresdb",
+        "z": "",
+        "hostname": "db",
+        "port": "5432",
+        "db": "coffee",
+        "ssl": false
+    }
+]
