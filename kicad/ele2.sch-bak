@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:ele2-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -67,8 +68,8 @@ $Comp
 L ele2:HX711_module U2
 U 1 1 5E815E00
 P 6550 4450
-F 0 "U2" H 6650 4900 50  0000 C CNN
-F 1 "HX711_module" H 6850 4000 50  0000 C CNN
+F 0 "U2" H 6400 4900 50  0000 C CNN
+F 1 "HX711_module" H 6200 4000 50  0000 C CNN
 F 2 "" H 6550 4450 50  0001 C CNN
 F 3 "" H 6550 4450 50  0001 C CNN
 	1    6550 4450
@@ -126,34 +127,8 @@ Text GLabel 4650 4150 2    50   Input ~ 0
 TARE_SW
 NoConn ~ 4650 4250
 NoConn ~ 4650 4350
-Entry Wire Line
-	7050 4100 6950 4200
-Entry Wire Line
-	7050 4200 6950 4300
-Entry Wire Line
-	7050 4300 6950 4400
-Entry Wire Line
-	7050 4400 6950 4500
-Entry Wire Line
-	7050 4500 6950 4600
-Entry Wire Line
-	7050 4600 6950 4700
-Text GLabel 7200 3950 2    50   Input ~ 0
-LOAD_CELLS
-Wire Wire Line
-	6900 4200 6950 4200
-Wire Wire Line
-	6900 4700 6950 4700
-Wire Wire Line
-	6900 4600 6950 4600
-Wire Wire Line
-	6900 4500 6950 4500
-Wire Wire Line
-	6900 4400 6950 4400
-Wire Wire Line
-	6900 4300 6950 4300
 Wire Bus Line
-	7050 3950 7200 3950
+	7200 3950 7300 3950
 Text GLabel 4650 3750 2    50   Input ~ 0
 HX_DT
 Text GLabel 6250 4500 0    50   Input ~ 0
@@ -180,6 +155,52 @@ Text Notes 5650 3650 0    50   ~ 0
 HX711 load cell module
 Text Notes 3550 2600 0    50   ~ 0
 Core controller - D1 Mini
+Entry Wire Line
+	7200 4600 7100 4700
+Entry Wire Line
+	7200 4500 7100 4600
+Entry Wire Line
+	7200 4400 7100 4500
+Entry Wire Line
+	7200 4300 7100 4400
+Entry Wire Line
+	7200 4200 7100 4300
+Entry Wire Line
+	7200 4100 7100 4200
+Wire Wire Line
+	6900 4200 7100 4200
+Wire Wire Line
+	6900 4300 7100 4300
+Wire Wire Line
+	6900 4400 7100 4400
+Wire Wire Line
+	6900 4500 7100 4500
+Wire Wire Line
+	6900 4600 7100 4600
+Wire Wire Line
+	6900 4700 7000 4700
+Connection ~ 7000 4700
+Wire Wire Line
+	7000 4700 7100 4700
+$Comp
+L power:GND #PWR?
+U 1 1 5E83F78A
+P 7000 4950
+F 0 "#PWR?" H 7000 4700 50  0001 C CNN
+F 1 "GND" H 7005 4777 50  0000 C CNN
+F 2 "" H 7000 4950 50  0001 C CNN
+F 3 "" H 7000 4950 50  0001 C CNN
+	1    7000 4950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7000 4700 7000 4950
+Text GLabel 7300 3950 2    50   Input ~ 0
+LOAD_CELLS
 Wire Bus Line
-	7050 3950 7050 4600
+	7200 3950 7200 4600
+Text Notes 7050 4900 0    50   ~ 0
+*)
+Text Notes 6550 5750 0    50   ~ 0
+*) E- manually connected to GND\n  due to missing trace on board
 $EndSCHEMATC

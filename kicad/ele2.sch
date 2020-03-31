@@ -15,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L MCU_Module:WeMos_D1_mini U1
+L ele2:WeMos_D1_mini U1
 U 1 1 5E80C742
 P 4250 3950
 F 0 "U1" H 4450 4750 50  0000 C CNN
@@ -197,10 +197,10 @@ Wire Wire Line
 	7000 4700 7000 4950
 Text GLabel 7300 3950 2    50   Input ~ 0
 LOAD_CELLS
-Wire Bus Line
-	7200 3950 7200 4600
 Text Notes 7050 4900 0    50   ~ 0
 *)
 Text Notes 6550 5750 0    50   ~ 0
 *) E- manually connected to GND\n  due to missing trace on board
+Wire Bus Line
+	7200 3950 7200 4600
 $EndSCHEMATC
