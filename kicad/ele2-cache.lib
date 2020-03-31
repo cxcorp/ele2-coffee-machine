@@ -40,6 +40,21 @@ X VCC ~ -50 450 100 D 50 50 1 1 W
 ENDDRAW
 ENDDEF
 #
+# ele2_Load_cell
+#
+DEF ele2_Load_cell U 0 40 Y Y 1 F N
+F0 "U" 100 300 50 H V C CNN
+F1 "ele2_Load_cell" 0 -250 50 H V C CNN
+F2 "" 50 0 50 H I C CNN
+F3 "" 50 0 50 H I C CNN
+DRAW
+S -250 250 250 -200 0 1 0 N
+X BLK ~ -350 0 100 R 50 50 1 1 I
+X RED ~ 0 350 100 D 50 50 1 1 I
+X WHT ~ 350 0 100 L 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
 # ele2_WeMos_D1_mini
 #
 DEF ele2_WeMos_D1_mini U 0 20 Y Y 1 F N

@@ -4,7 +4,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 1
+Sheet 1 2
 Title "coffee-sensor"
 Date "2020-03-29"
 Rev "1.0.0"
@@ -127,8 +127,6 @@ Text GLabel 4650 4150 2    50   Input ~ 0
 TARE_SW
 NoConn ~ 4650 4250
 NoConn ~ 4650 4350
-Wire Bus Line
-	7200 3950 7300 3950
 Text GLabel 4650 3750 2    50   Input ~ 0
 HX_DT
 Text GLabel 6250 4500 0    50   Input ~ 0
@@ -140,48 +138,24 @@ HX_DT
 Wire Notes Line
 	3450 2450 3450 5500
 Wire Notes Line
-	3450 5500 7900 5500
+	3450 5500 8100 5500
 Wire Notes Line
-	7900 5500 7900 2450
+	8100 5500 8100 2450
 Wire Notes Line
-	7900 2450 3450 2450
+	8100 2450 3450 2450
 Wire Notes Line
 	5550 2450 5550 5500
 Wire Notes Line
-	5550 3500 7900 3500
+	5550 3500 8100 3500
 Text Notes 5650 2600 0    50   ~ 0
 Calibration button
 Text Notes 5650 3650 0    50   ~ 0
 HX711 load cell module
 Text Notes 3550 2600 0    50   ~ 0
 Core controller - D1 Mini
-Entry Wire Line
-	7200 4600 7100 4700
-Entry Wire Line
-	7200 4500 7100 4600
-Entry Wire Line
-	7200 4400 7100 4500
-Entry Wire Line
-	7200 4300 7100 4400
-Entry Wire Line
-	7200 4200 7100 4300
-Entry Wire Line
-	7200 4100 7100 4200
-Wire Wire Line
-	6900 4200 7100 4200
-Wire Wire Line
-	6900 4300 7100 4300
-Wire Wire Line
-	6900 4400 7100 4400
-Wire Wire Line
-	6900 4500 7100 4500
-Wire Wire Line
-	6900 4600 7100 4600
 Wire Wire Line
 	6900 4700 7000 4700
 Connection ~ 7000 4700
-Wire Wire Line
-	7000 4700 7100 4700
 $Comp
 L power:GND #PWR?
 U 1 1 5E83F78A
@@ -195,12 +169,28 @@ F 3 "" H 7000 4950 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	7000 4700 7000 4950
-Text GLabel 7300 3950 2    50   Input ~ 0
-LOAD_CELLS
-Text Notes 7050 4900 0    50   ~ 0
+Text Notes 6900 4900 0    50   ~ 0
 *)
 Text Notes 6550 5750 0    50   ~ 0
 *) E- manually connected to GND\n  due to missing trace on board
-Wire Bus Line
-	7200 3950 7200 4600
+$Sheet
+S 7200 4050 550  750 
+U 5E83A8FB
+F0 "LoadCells" 50
+F1 "loadCells.sch" 50
+F2 "RED_II" I L 7200 4500 50 
+F3 "RED_I" I L 7200 4700 50 
+F4 "RED_IV" I L 7200 4600 50 
+F5 "RED_III" I L 7200 4400 50 
+$EndSheet
+NoConn ~ 6900 4200
+NoConn ~ 6900 4300
+Wire Wire Line
+	6900 4400 7200 4400
+Wire Wire Line
+	6900 4500 7200 4500
+Wire Wire Line
+	6900 4600 7200 4600
+Wire Wire Line
+	7000 4700 7200 4700
 $EndSCHEMATC
