@@ -80,7 +80,7 @@ bot.onText(/^\/status/, async msg => {
 
   bot.sendMessage(
     chatId,
-    `Paino: ${weights[weights.length - 1].weight} kg (mitattu ${weights[
+    `Paino: ${weights[weights.length - 1].weight.toFixed(1)} kg (mitattu ${weights[
       weights.length - 1
     ].timestamp.toISOString()})`
   )
