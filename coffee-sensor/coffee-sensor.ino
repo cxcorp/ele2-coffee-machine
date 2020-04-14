@@ -230,7 +230,7 @@ static bool shouldMeasure() {
   return false;
 }
 
-oneShotMs firmwareUpdateTimeout(30000);
+oneShotMs firmwareUpdateTimeout(60000);
 oneShotMs wifiDebugTimeout(2000);
 oneShotMs wsDebugTimeout(2000);
 oneShotMs wsReconnectTimeout(2000);
