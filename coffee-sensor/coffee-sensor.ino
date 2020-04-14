@@ -1,3 +1,5 @@
+#define ATOMIC_FS_UPDATE
+#include <ESP8266httpUpdate.h>
 #include <ESP8266WiFi.h>
 #include <FS.h>
 #include <ArduinoWebsockets.h>
@@ -7,6 +9,8 @@
 #include "ConfigPersistence.h"
 #include "ConfigWebServer.h"
 #include "Util.h"
+#include "SigningKey.h"
+#include "Version.h"
 
 using esp8266::polledTimeout::oneShotMs;
 
@@ -19,11 +23,12 @@ using esp8266::polledTimeout::oneShotMs;
 using namespace websockets;
 
 #define DRD_TIMEOUT 2
-// RTC memory address
 #define DRD_MEM_ADDR 0x00
 DoubleResetDetect doubleReset(DRD_TIMEOUT, DRD_MEM_ADDR);
 
 ConfigPersistence configPersistence("/config.json", SPIFFS);
+bool isConfigMode = false;
+ConfigPersistence::Config appConfig;
 
 #define CONFIG_AP_SSID "OH sensor admin"
 #define CONFIG_AP_PASSPHRASE "12345678"
@@ -35,14 +40,20 @@ ConfigWebServer configServer(80);
 HX711 scale;
 WebsocketsClient wsClient;
 
-bool isConfigMode = false;
-ConfigPersistence::Config appConfig;
+// firmware update signing key
+BearSSL::PublicKey *signPubKey = nullptr;
+BearSSL::HashSHA256 *hash = nullptr;
+BearSSL::SigningVerifier *sign = nullptr;
+#define FIRMWARE_UPDATE_URL "http://192.168.10.48:4000/update"
 
 StatusData configGetStatus() {
   StatusData statusData;
+  statusData.fwVersion = FW_VERSION;
+  statusData.fwTimestamp = FW_TIMESTAMP;
   statusData.wifiStatus = WiFi.status();
   statusData.espFreeHeap = ESP.getFreeHeap();
   if (!configPersistence.read(statusData.appConfig)) {
+    Serial.println("Failed to read config");
     statusData.appConfig.SSID[0] = '\0';
     statusData.appConfig.psk[0] = '\0';
     statusData.appConfig.websocketURL[0] = '\0';
@@ -54,6 +65,7 @@ StatusData configGetStatus() {
 void configOnWifiCredentials(const char *ssid, const char *psk) {
   ConfigPersistence::Config config;
   configPersistence.read(config);
+  Serial.printf("Persisting credentials: %s, %s\n", ssid, psk);
   strlcpy(config.SSID, ssid, ARRAY_SIZE(config.SSID));
   strlcpy(config.psk, psk, ARRAY_SIZE(config.psk));
   configPersistence.write(config);
@@ -66,7 +78,46 @@ void configOnWebsocketUrl(const char *websocketUrl) {
   configPersistence.write(config);
 }
 
-void setup() {
+void onFirmwareUpdateError(int err) {
+  Serial.printf("Firmware update error: %d\n", err);
+  // didn't update - let's get SPIFFS back up
+  SPIFFS.begin();
+  // wifi & websocket starting should be handled by loop
+}
+
+void onFirmwareUpdateProgress(int bytesDownloaded, int totalBytes) {
+  // just print updates every 10 blocks or so
+  if ((bytesDownloaded / 4096) % 10 == 0 || bytesDownloaded == 0 || bytesDownloaded == totalBytes) {
+    Serial.printf("Firmware update progress: %d/%d B\n", bytesDownloaded, totalBytes);
+  }
+}
+
+void initFirmwareUpdate() {
+  // set up pub key verification
+  signPubKey = new BearSSL::PublicKey(SigningKey::pubkey);
+  hash = new BearSSL::HashSHA256();
+  sign = new BearSSL::SigningVerifier(signPubKey);
+
+  ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
+  ESPhttpUpdate.onStart([]() {
+    // close FS
+    SPIFFS.end();
+    // disconnect websocket so server doesn't keep it alive for nothing
+    wsClient.close();
+    // give firmware time to send close packet
+    delay(50);
+
+    Serial.println("Firmware update starting");
+  });
+  ESPhttpUpdate.onEnd([]() {
+    // device reboots after this step
+    Serial.println("Firmware update finished, rebooting");
+  });
+  ESPhttpUpdate.onError(onFirmwareUpdateError);
+  ESPhttpUpdate.onProgress(onFirmwareUpdateProgress);
+}
+
+void setup() {  
   // detect double reset as quickly as possible
   bool wasDoubleReset = doubleReset.detect();
 
@@ -79,9 +130,13 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
 
+  Serial.println("coffee-sensor version " FW_VERSION ", built at " FW_TIMESTAMP);
+
   Serial.println("Initializing SPIFFS");
   SPIFFS.begin();
   Serial.println("SPIFFS initialized");
+
+  initFirmwareUpdate();
 
   if (wasDoubleReset) {
     Serial.println("Configuration mode");
@@ -121,7 +176,6 @@ void setup() {
     if (!configPersistence.read(appConfig)) {
       Serial.println("No persisted wifi credentials or failed to read config!");
     } else {
-      Serial.printf("Persisted SSID: %s, psk: %s, ws: %s\n", appConfig.SSID, appConfig.psk, appConfig.websocketURL);
       WiFi.begin(appConfig.SSID, appConfig.psk);
     }
   }
@@ -134,6 +188,28 @@ void setup() {
 
   // let ws client connect to HTTPS
   wsClient.setInsecure();
+}
+
+void updateFirmware() {
+  WiFiClient client;
+
+  Serial.println("Checking for updates");
+  Update.installSignature(hash, sign);
+  
+  t_httpUpdate_return ret = ESPhttpUpdate.update(client, FIRMWARE_UPDATE_URL, FW_VERSION);
+  switch (ret) {
+    case HTTP_UPDATE_FAILED:
+      Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+      break;
+
+    case HTTP_UPDATE_NO_UPDATES:
+      Serial.println("HTTP_UPDATE_NO_UPDATES");
+      break;
+
+    case HTTP_UPDATE_OK:
+      Serial.println("HTTP_UPDATE_OK");
+      break;
+  }
 }
 
 oneShotMs tareTimeout(1000);
@@ -154,6 +230,9 @@ static bool shouldMeasure() {
   return false;
 }
 
+oneShotMs firmwareUpdateTimeout(30000);
+oneShotMs wifiDebugTimeout(2000);
+oneShotMs wsDebugTimeout(2000);
 oneShotMs wsReconnectTimeout(2000);
 
 void loop() {
@@ -164,10 +243,23 @@ void loop() {
 
   if (WiFi.status() != WL_CONNECTED) {
     // wait for auto reconnect by esp firmware
+    if (wifiDebugTimeout) {
+      Serial.printf("WiFi not connected: %s\n", Util::wlStatusString(WiFi.status()));
+      wifiDebugTimeout.reset();
+    }
     return;
   }
 
+  if (firmwareUpdateTimeout) {
+    updateFirmware();
+    firmwareUpdateTimeout.reset();
+  }
+
   if (!wsClient.available()) {
+    if (wsReconnectTimeout) {
+      Serial.println("WS client not available");
+      wsReconnectTimeout.reset();
+    }
     if (wsReconnectTimeout) {
       wsClient.connect(appConfig.websocketURL);
       wsReconnectTimeout.reset();

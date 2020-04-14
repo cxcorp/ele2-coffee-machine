@@ -52,9 +52,12 @@ void ConfigWebServer::handleBootstrap() {
 }
 
 void ConfigWebServer::handleApiStatus() {
-  StaticJsonDocument<JSON_OBJECT_SIZE(5) + 512> doc;
+  // size generated via https://arduinojson.org/v6/assistant/
+  StaticJsonDocument<JSON_OBJECT_SIZE(7) + 512> doc;
 
   StatusData statusData = _getStatusData();
+  doc["fwVersion"] = statusData.fwVersion;
+  doc["fwTimestamp"] = statusData.fwTimestamp;
   doc["wifiStatus"] = Util::wlStatusString(statusData.wifiStatus);
   doc["freeHeap"] = statusData.espFreeHeap;
   doc["currentSavedSSID"] = statusData.appConfig.SSID;

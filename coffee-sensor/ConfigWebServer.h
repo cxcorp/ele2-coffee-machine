@@ -7,6 +7,8 @@
 #include "ConfigPersistence.h"
 
 struct StatusData {
+  const char *fwVersion;
+  const char *fwTimestamp;
   uint8_t wifiStatus;
   uint32_t espFreeHeap;
   ConfigPersistence::Config appConfig;

@@ -2,6 +2,14 @@
 #include <ArduinoJson.h>
 #include "Util.h"
 
+// From https://arduinojson.org/v6/assistant/
+// With a JSON object where the ssid is 32 chars, psk is 63 and ws url is 256, the calculator
+// says we need 378 bytes. ArduinoJSON suggests extra 10% for safety.
+// Rounded up to nearest divisible-by-4 value this is 416.
+#define JSON_KEY_COUNT 3
+#define JSON_STRING_SPACE 416
+#define CONFIG_JSON_SIZE (JSON_OBJECT_SIZE(JSON_KEY_COUNT) + JSON_STRING_SPACE)
+
 #define SSID_KEY "ssid"
 #define PSK_KEY "psk"
 #define WEBSOCKET_URL_KEY "websocket_url"
@@ -20,9 +28,7 @@ boolean ConfigPersistence::read(Config &config) {
     return false;
   }
 
-  // From https://arduinojson.org/v6/assistant/
-  // With our limits, we only need 250 bytes for the strings but let's limit it to +10% to be on the safe side
-  StaticJsonDocument<JSON_OBJECT_SIZE(3) + 288> doc;
+  StaticJsonDocument<CONFIG_JSON_SIZE> doc;
   DeserializationError err = deserializeJson(doc, f);
 
   if (err) {
@@ -55,7 +61,7 @@ boolean ConfigPersistence::write(const Config &config) {
     return false;
   }
 
-  StaticJsonDocument<JSON_OBJECT_SIZE(3) + 288> doc;
+  StaticJsonDocument<CONFIG_JSON_SIZE> doc;
   doc[SSID_KEY] = config.SSID;
   doc[PSK_KEY] = config.psk;
   doc[WEBSOCKET_URL_KEY] = config.websocketURL;

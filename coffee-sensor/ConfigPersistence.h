@@ -3,15 +3,17 @@
 
 #include <Arduino.h>
 #include <FS.h>
+#include <ESP8266WiFi.h>
 
 class ConfigPersistence {
 public:
   struct Config {
-    // 32 + null
-    char SSID[33] = {0};
-    // length is 8-63 for passphrase, 63 + null
-    char psk[64] = {0};
-    char websocketURL[129] = {0}; // 128 + 1
+    // 32 + 1
+    char SSID[WL_SSID_MAX_LENGTH + 1] = {0};
+    // 8-63 for passphrase, 63 + null
+    char psk[WL_WPA_KEY_MAX_LENGTH + 1] = {0};
+    // 256 + 1
+    char websocketURL[DNS_MAX_NAME_LENGTH + 1] = {0};
   };
 
   ConfigPersistence(const char *filename = "/creds.bin", fs::FS &fs = SPIFFS)
