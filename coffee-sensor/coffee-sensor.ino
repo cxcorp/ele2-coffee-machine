@@ -233,7 +233,7 @@ static bool shouldMeasure() {
 oneShotMs firmwareUpdateTimeout(60000);
 oneShotMs wifiDebugTimeout(2000);
 oneShotMs wsDebugTimeout(2000);
-oneShotMs wsReconnectTimeout(2000);
+oneShotMs wsReconnectTimeout(5000);
 
 void loop() {
   if (isConfigMode) {
@@ -256,9 +256,9 @@ void loop() {
   }
 
   if (!wsClient.available()) {
-    if (wsReconnectTimeout) {
+    if (wsDebugTimeout) {
       Serial.println("WS client not available");
-      wsReconnectTimeout.reset();
+      wsDebugTimeout.reset();
     }
     if (wsReconnectTimeout) {
       wsClient.connect(appConfig.websocketURL);
