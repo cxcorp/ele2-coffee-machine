@@ -85,7 +85,7 @@ bot.onText(/^\/status/, async msg => {
 
   bot.sendMessage(
     chatId,
-    `Coffee: ${weights[weights.length - 1].weight.toFixed(1)} litre (Measured ${weights[
+    `Coffee: ${weights[weights.length - 1].weight.toFixed(1)} litres (Measured ${weights[
       weights.length - 1
     ].timestamp.toISOString()})`
   )
