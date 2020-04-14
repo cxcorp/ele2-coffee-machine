@@ -136,19 +136,19 @@ void setup() {
   wsClient.setInsecure();
 }
 
-uint32_t lastTare = 0;
+oneShotMs tareTimeout(1000);
 static bool isTare() {
-  if (millis() - lastTare > 1000) {
-    lastTare = millis();
+  if (tareTimeout) {
+    tareTimeout.reset();
     return digitalRead(TARE_PIN) == 0;
   }
   return false;
 }
 
-uint32_t lastMeasure = 0;
+oneShotMs measurementTimeout(2000);
 static bool shouldMeasure() {
-  if (millis() - lastMeasure > 2000) {
-    lastMeasure = millis();
+  if (measurementTimeout) {
+    measurementTimeout.reset();
     return true;
   }
   return false;
