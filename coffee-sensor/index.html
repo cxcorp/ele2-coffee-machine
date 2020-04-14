@@ -1,0 +1,256 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Coffee Sensor Administration</title>
+    <link rel="stylesheet" href="/assets/bootstrap.min.css" />
+    <style type="text/css">
+      body,
+      html {
+        font-size: 14px;
+      }
+      body {
+        background-color: #eef2f7;
+      }
+      h1 {
+        font-weight: 400;
+        font-size: 34px;
+        line-height: 40px;
+      }
+      h2 {
+        font-weight: 400;
+        font-size: 24px;
+        line-height: 32px;
+      }
+      h3 {
+        font-weight: 400;
+        font-size: 20px;
+        line-height: 28px;
+      }
+      .layout {
+        max-width: 750px;
+        margin: 0 auto;
+      }
+      .block {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        padding: 1em 2em;
+        border-radius: 3px;
+        margin-bottom: 1em;
+        background: #fff;
+      }
+      .block--no-padding {
+        padding: 0;
+      }
+      .block:not(.block--no-padding) > h2,
+      .block:not(.block--no-padding) > h3 {
+        margin-top: 0;
+      }
+      @media all and (max-width: 720px) {
+        .btn-sm-block {
+          display: block;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+        <div class="row justify-content-md-center">
+          <div class="col col-lg-9">
+            <div class="row my-5">
+              <div class="col col-sm-12 col-md-10">
+                <h1>Coffee Sensor Administration</h1>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col">
+                <h2 class="my-3">System status</h2>
+              </div>
+            </div>
+  
+            <div class="row">
+              <div class="col">
+                <div class="block block--no-padding">
+                  <table class="table">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th colspan="2">Wi-Fi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>WiFi.status()</th>
+                        <td id="data-wifi-status"></td>
+                      </tr>
+                    </tbody>
+                    <thead class="thead-dark">
+                      <tr>
+                        <th colspan="2">Memory</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>ESP.getFreeHeap()</td>
+                        <td id="data-free-heap"></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+  
+            <div class="row">
+              <div class="col">
+                <h2 class="my-3">Wi-Fi configuration</h2>
+              </div>
+            </div>
+  
+            <div class="row">
+              <div class="col">
+                <div class="block">
+                  <div class="row">
+                    <div class="col">
+                      <form
+                        method="post"
+                        enctype="application/x-www-form-urlencoded"
+                        action="/persist/wifi"
+                      >
+                        <h3>Set Wi-fi client credentials</h3>
+                        <hr/>
+                        <div class="form-group">
+                          <label for="wifiSSID">SSID</label>
+                          <input
+                            type="text"
+                            class="form-control"
+                            name="wifi.ssid"
+                            id="wifiSSID"
+                            placeholder="Access Point name"
+                            minlength="1"
+                            maxlength="32"
+                            required
+                          />
+                        </div>
+                        <div class="form-group">
+                          <label for="wifiPassword">Password</label>
+                          <input
+                            type="password"
+                            class="form-control"
+                            name="wifi.password"
+                            id="wifiPassword"
+                            placeholder="Password"
+                            minlength="8"
+                            maxlength="63"
+                            required
+                          />
+                        </div>
+                        <hr/>
+                        <div class="form-group">
+                          <button
+                            type="submit"
+                            class="btn btn-primary btn-sm-block"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col">
+                <h2 class="my-3">WebSocket configuration</h2>
+              </div>
+            </div>
+  
+            <div class="row">
+              <div class="col">
+                <div class="block">
+                  <div class="row">
+                    <div class="col">
+                      <form
+                        method="post"
+                        enctype="application/x-www-form-urlencoded"
+                        action="/persist/ws"
+                      >
+                        <h3>Set server WebSocket URL</h3>
+                        <hr/>
+                        <div class="form-group">
+                          <label for="websocketURL">SSID</label>
+                          <input
+                            type="text"
+                            class="form-control"
+                            name="ws.url"
+                            id="websocketURL"
+                            placeholder="wss://example.com:443/ws"
+                            maxlength="255"
+                            required
+                          />
+                        </div>
+                        <hr/>
+                        <div class="form-group">
+                          <button
+                            type="submit"
+                            class="btn btn-primary btn-sm-block"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </main>
+    <script>
+(async () => {
+  const res = await fetch("/api/status");
+  if (res.status !== 200) {
+    alert(
+      `Server error, please see your browser's developer tools' network tab! Response code: ${res.status}`
+    );
+    return;
+  }
+
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    console.error("Malformed JSON", e);
+    alert(
+      `Server sent malformed JSON! Please see your browser's developer tools' network tab.`
+    );
+    return;
+  }
+
+  const { wifiStatus, freeHeap, currentSavedSSID, currentPasswordLen, websocketURL } = data;
+  document.getElementById("data-wifi-status").innerText = wifiStatus;
+  document.getElementById("data-free-heap").innerText = freeHeap > 10000 ? `${(freeHeap / 1000).toFixed(3)} KB` : `${freeHeap} B`;
+  const ssidInput = document.getElementById("wifiSSID");
+  const pskInput = document.getElementById("wifiPassword");
+  const websocketURLInput = document.getElementById("websocketURL");
+
+  // set currently saved SSID as the current value of the Set wifi credentials form's input
+  if (ssidInput.value.length <= 0 && currentSavedSSID) {
+    // if user hasn't entered anything yet
+    ssidInput.value = currentSavedSSID;
+  }
+  // set currently saved password's amount of dots as the placeholder to the password
+  if (currentPasswordLen > 0) {
+    pskInput.placeholder = "•".repeat(currentPasswordLen > 63 ? 63 : currentPasswordLen)
+  }
+
+  if (websocketURLInput.value.length <= 0 && websocketURL) {
+    websocketURLInput.value = websocketURL
+  }
+})();
+    </script>
+  </body>
+</html>
