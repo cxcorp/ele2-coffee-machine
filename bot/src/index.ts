@@ -78,6 +78,11 @@ bot.onText(/^\/status/, async msg => {
       .select(['timestamp', 'weight'])
   ).reverse()
 
+  if (weights.length === 0) {
+    bot.sendMessage(chatId, 'Ei tietoa sensorilta yli puoleen tuntiin!')
+    return
+  }
+
   bot.sendMessage(
     chatId,
     `Paino: ${weights[weights.length - 1].weight.toFixed(1)} kg (mitattu ${weights[
