@@ -1,0 +1,22 @@
+{
+  "name": "ota-update-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "private": true,
+  "license": "",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "http-status-codes": "^1.4.0",
+    "nodemon": "^2.0.3",
+    "semver": "^7.3.0"
+  }
+}

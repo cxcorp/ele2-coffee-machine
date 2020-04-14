@@ -1,0 +1,4 @@
+firmware/*
+config/latest.json
+node_modules/
+.git

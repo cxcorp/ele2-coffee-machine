@@ -11,6 +11,19 @@ services:
     volumes:
       - "./nodered-data:/data"
 
+  ota-update-server:
+    image: registry.cxcorp.systems/ota-update-server
+    build: ./ota-update-server
+    init: true
+    environment:
+      - HOST=0.0.0.0
+      - PORT=4000
+    ports:
+      - 4000:4000
+    volumes:
+      - ./ota-update-server-data/config:/app/config:ro
+      - ./ota-update-server-data/firmware:/app/firmware:ro
+
   bot:
     image: registry.cxcorp.systems/coffee-system-bot
     build: ./bot

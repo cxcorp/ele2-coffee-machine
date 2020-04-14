@@ -1,3 +1,4 @@
 nodered-data/
 .vscode
 docker-compose.dev.yml
+ota-update-server-data
