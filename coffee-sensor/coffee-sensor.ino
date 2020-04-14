@@ -98,6 +98,8 @@ void initFirmwareUpdate() {
   hash = new BearSSL::HashSHA256();
   sign = new BearSSL::SigningVerifier(signPubKey);
 
+  Update.installSignature(hash, sign);
+
   ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
   ESPhttpUpdate.onStart([]() {
     // close FS
@@ -194,8 +196,6 @@ void updateFirmware() {
   WiFiClient client;
 
   Serial.println("Checking for updates");
-  Update.installSignature(hash, sign);
-  
   t_httpUpdate_return ret = ESPhttpUpdate.update(client, FIRMWARE_UPDATE_URL, FW_VERSION);
   switch (ret) {
     case HTTP_UPDATE_FAILED:
