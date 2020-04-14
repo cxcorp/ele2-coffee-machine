@@ -44,7 +44,14 @@ WebsocketsClient wsClient;
 BearSSL::PublicKey *signPubKey = nullptr;
 BearSSL::HashSHA256 *hash = nullptr;
 BearSSL::SigningVerifier *sign = nullptr;
-#define FIRMWARE_UPDATE_URL "http://192.168.10.48:4000/update"
+
+#define FIRMWARE_UPDATE_URL "https://ota.ele2.cxcorp.systems:443/update"
+// If the URL is HTTPS, copy its certificate fingerprint below.
+// If you set a non-HTTPS URL, comment out the define FIRMWARE_UPDATE_HTTPS line below!
+#define FIRMWARE_UPDATE_HTTPS 1
+#ifdef FIRMWARE_UPDATE_HTTPS
+static const char firmwareUpdateHttpsFingerprint[] PROGMEM = "6F E5 D6 DF FC 00 35 E5 F7 43 92 3F 00 B0 41 0F D1 1E B4 6B";
+#endif
 
 StatusData configGetStatus() {
   StatusData statusData;
@@ -193,10 +200,24 @@ void setup() {
 }
 
 void updateFirmware() {
+  // Free up heap for update TLS
+  // The TLS ops for the websocket scoop up ~20 KB of heap. We don't have enough heap
+  // to have connections open for both the websocket and the updater at the same time.
+  // Close the websocket's TLS connection before starting to update.
+  wsClient.close();
+  delay(10);
+
+#ifdef FIRMWARE_UPDATE_HTTPS
+  WiFiClientSecure client;
+  client.setFingerprint(firmwareUpdateHttpsFingerprint);
+#else
   WiFiClient client;
+#endif
 
   Serial.println("Checking for updates");
   t_httpUpdate_return ret = ESPhttpUpdate.update(client, FIRMWARE_UPDATE_URL, FW_VERSION);
+  client.stop();
+
   switch (ret) {
     case HTTP_UPDATE_FAILED:
       Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
@@ -261,6 +282,7 @@ void loop() {
       wsDebugTimeout.reset();
     }
     if (wsReconnectTimeout) {
+      wsClient.close();
       wsClient.connect(appConfig.websocketURL);
       wsReconnectTimeout.reset();
     }
