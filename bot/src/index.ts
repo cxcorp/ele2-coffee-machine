@@ -85,7 +85,7 @@ bot.onText(/^\/status/, async msg => {
 
   bot.sendMessage(
     chatId,
-    `Paino: ${weights[weights.length - 1].weight.toFixed(1)} kg (mitattu ${weights[
+    `Coffee: ${weights[weights.length - 1].weight.toFixed(1)} litre (Measured ${weights[
       weights.length - 1
     ].timestamp.toISOString()})`
   )
@@ -121,7 +121,7 @@ bot.onText(/^\/status/, async msg => {
           }
         )}\ny-min: ${yMin < -0.5 ? yMin : -0.5}, y-max: ${
           yMax > 3.5 ? yMax : 3.5
-        }\n\nkeskiarvo: ${(
+        }\n\nAverage: ${(
           weights.map(w => w.weight).reduce((acc, val) => acc + val) /
           weights.length
         ).toFixed(2)}`
