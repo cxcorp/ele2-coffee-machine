@@ -79,7 +79,7 @@ bot.onText(/^\/status/, async msg => {
   ).reverse()
 
   if (weights.length === 0) {
-    bot.sendMessage(chatId, 'Ei tietoa sensorilta yli puoleen tuntiin!')
+    bot.sendMessage(chatId, 'No information from sensor for over 30 minutes!')
     return
   }
 
