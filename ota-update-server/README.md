@@ -15,3 +15,9 @@ Server which serves OTA updates to the coffee-sensor.
     - The port `4000` and path `/update` are default.
 8. Make sure your computer's firewall doesn't block connections from the sensor
 9. Wait for the sensor to check for updates
+
+## Running with Docker
+
+1. `docker build -t ota-update-server .`
+2. `docker run -it -p 4000:000 ota-update-server`
+    - (optional) set env vars `-e HOST=127.0.0.1 -e PORT=9000`
