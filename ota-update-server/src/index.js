@@ -43,7 +43,7 @@ app.get('/update', async (req, res) => {
     console.log('Invalid request')
     console.log(req.headers)
     console.log(req.ips)
-    return res.sendStatus(Status.BAD_REQUEST)
+    return res.sendStatus(Status.UNAUTHORIZED)
   }
 
   let currentConfig
