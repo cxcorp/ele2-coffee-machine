@@ -7,3 +7,7 @@
 | kicad             | Electronic wiring schema                                                                               |
 | ota-update-server | Coffee sensor over-the-air firmware update server                                                      |
 | serial-dumper     | Utility for dumping numbers printed to serial from the coffee-sensor. Useful for generating test data. |
+
+## Architecture
+
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/architecture-v1.png)
