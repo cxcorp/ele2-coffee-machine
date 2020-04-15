@@ -1,5 +1,6 @@
 firmware/*.bin
 config/latest.json
+config/device-whitelist.json
 
 
 # Created by https://www.gitignore.io/api/node

@@ -6,6 +6,11 @@ const Status = require('http-status-codes')
 
 const existsAsync = require('util').promisify(fs.exists)
 
+const WHITELIST_FILE = path.join(
+  __dirname,
+  '../config',
+  'device-whitelist.json'
+)
 const CONFIG_FILE = path.join(__dirname, '../config', 'latest.json')
 const FIRMWARE_DIR = path.join(__dirname, '../firmware')
 
@@ -17,6 +22,17 @@ if (!fs.existsSync(FIRMWARE_DIR) || !fs.statSync(FIRMWARE_DIR).isDirectory()) {
   )
   process.exit(1)
 }
+
+if (!fs.existsSync(WHITELIST_FILE)) {
+  console.error(`Device MAC whitelist file (${WHITELIST_FILE}) is missing`)
+  process.exit(1)
+}
+
+const deviceWhitelist = new Set(
+  JSON.parse(fs.readFileSync(WHITELIST_FILE, 'utf-8')).map((s) =>
+    s.toUpperCase()
+  )
+)
 
 const app = express()
 
@@ -32,10 +48,12 @@ const getCurrentConfig = async () => {
 
 app.get('/update', async (req, res) => {
   const chipFirmwareVersion = semver.valid(req.header('x-esp8266-version'))
+  const mac = req.header('x-esp8266-sta-mac')
   if (
     req.header('user-agent') !== 'ESP8266-http-Update' ||
     req.header('x-esp8266-mode') !== 'sketch' ||
-    !req.header('x-esp8266-sta-mac') ||
+    !mac ||
+    !deviceWhitelist.has(mac.toUpperCase()) ||
     !req.header('x-esp8266-free-space') ||
     isNaN(req.header('x-esp8266-free-space')) ||
     !chipFirmwareVersion
@@ -67,7 +85,6 @@ app.get('/update', async (req, res) => {
     return res.sendStatus(Status.NOT_MODIFIED)
   }
 
-  const mac = req.header('x-esp8266-sta-mac')
   const freeSpace = parseInt(req.header('x-esp8266-free-space'), 10)
 
   console.log(
