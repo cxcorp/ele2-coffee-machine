@@ -1,18 +1,11 @@
 #include "ConfigPersistence.h"
-#include <ArduinoJson.h>
 #include "Util.h"
-
-// From https://arduinojson.org/v6/assistant/
-// With a JSON object where the ssid is 32 chars, psk is 63 and ws url is 256, the calculator
-// says we need 378 bytes. ArduinoJSON suggests extra 10% for safety.
-// Rounded up to nearest divisible-by-4 value this is 416.
-#define JSON_KEY_COUNT 3
-#define JSON_STRING_SPACE 416
-#define CONFIG_JSON_SIZE (JSON_OBJECT_SIZE(JSON_KEY_COUNT) + JSON_STRING_SPACE)
 
 #define SSID_KEY "ssid"
 #define PSK_KEY "psk"
 #define WEBSOCKET_URL_KEY "websocket_url"
+#define SCALE_MULTIPLIER_KEY "scale_multiplier"
+#define SCALE_OFFSET_KEY "scale_offset"
 
 boolean ConfigPersistence::read(Config &config) {
   config.SSID[0] = '\0';
@@ -47,6 +40,18 @@ boolean ConfigPersistence::read(Config &config) {
 
   if (doc[WEBSOCKET_URL_KEY] != nullptr) {
     strlcpy(config.websocketURL, doc[WEBSOCKET_URL_KEY], ARRAY_SIZE(config.websocketURL));
+  }
+
+  if (doc[SCALE_MULTIPLIER_KEY].isNull()) {
+    config.scale.multiplier = DEFAULT_SCALE_MULTIPLIER;
+  } else {
+    config.scale.multiplier = doc[SCALE_MULTIPLIER_KEY].as<float>();
+  }
+
+  if (doc[SCALE_OFFSET_KEY].isNull()) {
+    config.scale.offset = DEFAULT_SCALE_OFFSET;
+  } else {
+    config.scale.offset = doc[SCALE_OFFSET_KEY].as<int32_t>();
   }
 
   f.close();

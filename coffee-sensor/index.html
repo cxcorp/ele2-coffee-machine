@@ -55,202 +55,357 @@
   </head>
   <body>
     <main class="container">
-        <div class="row justify-content-md-center">
-          <div class="col col-lg-9">
-            <div class="row my-5">
-              <div class="col col-sm-12 col-md-10">
-                <h1>Coffee Sensor Administration</h1>
+      <div class="row justify-content-md-center">
+        <div class="col col-lg-9">
+          <div class="row my-5">
+            <div class="col col-sm-12 col-md-10">
+              <h1>Coffee Sensor Administration</h1>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <h2 class="my-3">System status</h2>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="block block--no-padding">
+                <table class="table">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th colspan="2">Wi-Fi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>WiFi.status()</td>
+                      <td id="data-wifi-status"></td>
+                    </tr>
+                  </tbody>
+                  <thead class="thead-dark">
+                    <tr>
+                      <th colspan="2">Memory</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>ESP.getFreeHeap()</td>
+                      <td id="data-free-heap"></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
-            
-            <div class="row">
-              <div class="col">
-                <h2 class="my-3">System status</h2>
-              </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <h2 class="my-3">Scale calibration</h2>
             </div>
-  
-            <div class="row">
-              <div class="col">
-                <div class="block block--no-padding">
-                  <table class="table">
-                    <thead class="thead-dark">
-                      <tr>
-                        <th colspan="2">Wi-Fi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>WiFi.status()</th>
-                        <td id="data-wifi-status"></td>
-                      </tr>
-                    </tbody>
-                    <thead class="thead-dark">
-                      <tr>
-                        <th colspan="2">Memory</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>ESP.getFreeHeap()</td>
-                        <td id="data-free-heap"></td>
-                      </tr>
-                    </tbody>
-                  </table>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="block block--no-padding">
+                <div class="row">
+                  <div class="col">
+                    <ol class="pt-3">
+                      <li>
+                        Set <b>Scale multiplier</b> to <code>1.0</code> and
+                        press Save.
+                      </li>
+                      <li>Press <b>Tare</b>.</li>
+                      <li>
+                        Place a known weight on the scale, wait a second, and
+                        refresh this page.
+                      </li>
+                      <li>
+                        Divide the <b>Current weight</b> by your known weight.
+                        This is the approximate value for
+                        <b>Scale multiplier</b>.
+                      </li>
+                      <li>
+                        Adjust the parameter in step 4 until you get an accurate
+                        reading.
+                      </li>
+                    </ol>
+                  </div>
                 </div>
+                <table class="table mb-0">
+                  <tbody>
+                    <tr>
+                      <th scope="row">Current weight</th>
+                      <td colspan="2" id="data-scale-current-weight"></td>
+                    </tr>
+
+                    <tr>
+                      <th scope="row">
+                        Scale multiplier (<code>set_scale</code>)
+                      </th>
+                      <td>
+                        <form action="/persist/scale/multiplier" method="POST">
+                          <div class="input-group input-group-sm">
+                            <input
+                              class="form-control"
+                              name="scale.multiplier"
+                              id="data-tare-scale-multiplier"
+                              type="number"
+                              step="0.1"
+                            />
+                            <div class="input-group-append">
+                              <button
+                                class="btn btn-sm btn-outline-secondary"
+                                type="submit"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        The HX711 module uses this multiplier to scale the
+                        calculated values.
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <th scope="row">
+                        Scale offset (<code>set_offset</code>)
+                      </th>
+                      <td>
+                        <form action="/persist/scale/offset" method="POST">
+                          <div class="input-group input-group-sm">
+                            <input
+                              class="form-control"
+                              name="scale.offset"
+                              id="data-tare-scale-offset"
+                              type="number"
+                              step="0.1"
+                              style="width: 200px;"
+                            />
+                            <div class="input-group-append">
+                              <button
+                                class="btn btn-sm btn-outline-secondary"
+                                type="submit"
+                              >
+                                Save
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        The current raw tare offset. This value is added to the
+                        reading to offset the weight.
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <th scope="row" class="fullwidth">Tare</th>
+                      <td>
+                        <form action="/persist/scale/tare" method="POST">
+                          <div class="input-group input-group-sm">
+                            <button
+                              class="btn btn-sm btn-outline-primary"
+                              type="submit"
+                            >
+                              tare()
+                            </button>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        Let sensor calculate the <b>Scale offset</b> from the
+                        current weight.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
-  
-            <div class="row">
-              <div class="col">
-                <h2 class="my-3">Wi-Fi configuration</h2>
-              </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <h2 class="my-3">Wi-Fi configuration</h2>
             </div>
-  
-            <div class="row">
-              <div class="col">
-                <div class="block">
-                  <div class="row">
-                    <div class="col">
-                      <form
-                        method="post"
-                        enctype="application/x-www-form-urlencoded"
-                        action="/persist/wifi"
-                      >
-                        <h3>Set Wi-fi client credentials</h3>
-                        <hr/>
-                        <div class="form-group">
-                          <label for="wifiSSID">SSID</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="wifi.ssid"
-                            id="wifiSSID"
-                            placeholder="Access Point name"
-                            minlength="1"
-                            maxlength="32"
-                            required
-                          />
-                        </div>
-                        <div class="form-group">
-                          <label for="wifiPassword">Password</label>
-                          <input
-                            type="password"
-                            class="form-control"
-                            name="wifi.password"
-                            id="wifiPassword"
-                            placeholder="Password"
-                            minlength="8"
-                            maxlength="63"
-                            required
-                          />
-                        </div>
-                        <hr/>
-                        <div class="form-group">
-                          <button
-                            type="submit"
-                            class="btn btn-primary btn-sm-block"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </form>
-                    </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="block">
+                <div class="row">
+                  <div class="col">
+                    <form
+                      method="post"
+                      enctype="application/x-www-form-urlencoded"
+                      action="/persist/wifi"
+                    >
+                      <h3>Set Wi-fi client credentials</h3>
+                      <hr />
+                      <div class="form-group">
+                        <label for="wifiSSID">SSID</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="wifi.ssid"
+                          id="wifiSSID"
+                          placeholder="Access Point name"
+                          minlength="1"
+                          maxlength="32"
+                          required
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label for="wifiPassword">Password</label>
+                        <input
+                          type="password"
+                          class="form-control"
+                          name="wifi.password"
+                          id="wifiPassword"
+                          placeholder="Password"
+                          minlength="8"
+                          maxlength="63"
+                          required
+                        />
+                      </div>
+                      <hr />
+                      <div class="form-group">
+                        <button
+                          type="submit"
+                          class="btn btn-primary btn-sm-block"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div class="row">
-              <div class="col">
-                <h2 class="my-3">WebSocket configuration</h2>
-              </div>
+          <div class="row">
+            <div class="col">
+              <h2 class="my-3">WebSocket configuration</h2>
             </div>
-  
-            <div class="row">
-              <div class="col">
-                <div class="block">
-                  <div class="row">
-                    <div class="col">
-                      <form
-                        method="post"
-                        enctype="application/x-www-form-urlencoded"
-                        action="/persist/ws"
-                      >
-                        <h3>Set server WebSocket URL</h3>
-                        <hr/>
-                        <div class="form-group">
-                          <label for="websocketURL">SSID</label>
-                          <input
-                            type="text"
-                            class="form-control"
-                            name="ws.url"
-                            id="websocketURL"
-                            placeholder="wss://example.com:443/ws"
-                            maxlength="255"
-                            required
-                          />
-                        </div>
-                        <hr/>
-                        <div class="form-group">
-                          <button
-                            type="submit"
-                            class="btn btn-primary btn-sm-block"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </form>
-                    </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="block">
+                <div class="row">
+                  <div class="col">
+                    <form
+                      method="post"
+                      enctype="application/x-www-form-urlencoded"
+                      action="/persist/ws"
+                    >
+                      <h3>Set server WebSocket URL</h3>
+                      <hr />
+                      <div class="form-group">
+                        <label for="websocketURL">SSID</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="ws.url"
+                          id="websocketURL"
+                          placeholder="wss://example.com:443/ws"
+                          maxlength="255"
+                          required
+                        />
+                      </div>
+                      <hr />
+                      <div class="form-group">
+                        <button
+                          type="submit"
+                          class="btn btn-primary btn-sm-block"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
-      </main>
+      </div>
+    </main>
     <script>
-(async () => {
-  const res = await fetch("/api/status");
-  if (res.status !== 200) {
-    alert(
-      `Server error, please see your browser's developer tools' network tab! Response code: ${res.status}`
-    );
-    return;
-  }
+      (async () => {
+        const res = await fetch("/api/status");
+        if (res.status !== 200) {
+          alert(
+            `Server error, please see your browser's developer tools' network tab! Response code: ${res.status}`
+          );
+          return;
+        }
 
-  let data;
-  try {
-    data = await res.json();
-  } catch (e) {
-    console.error("Malformed JSON", e);
-    alert(
-      `Server sent malformed JSON! Please see your browser's developer tools' network tab.`
-    );
-    return;
-  }
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          console.error("Malformed JSON", e);
+          alert(
+            `Server sent malformed JSON! Please see your browser's developer tools' network tab.`
+          );
+          return;
+        }
 
-  const { wifiStatus, freeHeap, currentSavedSSID, currentPasswordLen, websocketURL } = data;
-  document.getElementById("data-wifi-status").innerText = wifiStatus;
-  document.getElementById("data-free-heap").innerText = freeHeap > 10000 ? `${(freeHeap / 1000).toFixed(3)} KB` : `${freeHeap} B`;
-  const ssidInput = document.getElementById("wifiSSID");
-  const pskInput = document.getElementById("wifiPassword");
-  const websocketURLInput = document.getElementById("websocketURL");
+        const elementById = document.getElementById.bind(document);
 
-  // set currently saved SSID as the current value of the Set wifi credentials form's input
-  if (ssidInput.value.length <= 0 && currentSavedSSID) {
-    // if user hasn't entered anything yet
-    ssidInput.value = currentSavedSSID;
-  }
-  // set currently saved password's amount of dots as the placeholder to the password
-  if (currentPasswordLen > 0) {
-    pskInput.placeholder = "•".repeat(currentPasswordLen > 63 ? 63 : currentPasswordLen)
-  }
+        const {
+          wifiStatus,
+          freeHeap,
+          currentSavedSSID,
+          currentPasswordLen,
+          websocketURL,
+          scaleMultiplier,
+          scaleOffset,
+          scaleReading,
+        } = data;
+        elementById("data-wifi-status").innerText = wifiStatus;
+        elementById("data-free-heap").innerText =
+          freeHeap > 10000
+            ? `${(freeHeap / 1000).toFixed(3)} KB`
+            : `${freeHeap} B`;
+        elementById("data-scale-current-weight").innerText = `${scaleReading}`;
+        const ssidInput = elementById("wifiSSID");
+        const pskInput = elementById("wifiPassword");
+        const websocketURLInput = elementById("websocketURL");
+        const scaleMultiplierInput = elementById("data-tare-scale-multiplier");
+        const scaleOffsetInput = elementById("data-tare-scale-offset");
 
-  if (websocketURLInput.value.length <= 0 && websocketURL) {
-    websocketURLInput.value = websocketURL
-  }
-})();
+        // set currently saved SSID as the current value of the Set wifi credentials form's input
+        if (ssidInput.value.length <= 0 && currentSavedSSID) {
+          // if user hasn't entered anything yet
+          ssidInput.value = currentSavedSSID;
+        }
+        // set currently saved password's amount of dots as the placeholder to the password
+        if (currentPasswordLen > 0) {
+          pskInput.placeholder = "•".repeat(
+            currentPasswordLen > 63 ? 63 : currentPasswordLen
+          );
+        }
+
+        if (websocketURLInput.value.length <= 0 && websocketURL) {
+          websocketURLInput.value = websocketURL;
+        }
+
+        scaleMultiplierInput.value = scaleMultiplier;
+        scaleOffsetInput.value = scaleOffset;
+      })();
     </script>
   </body>
 </html>

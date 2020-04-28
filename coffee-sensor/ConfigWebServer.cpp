@@ -9,6 +9,9 @@ void ConfigWebServer::begin() {
   this->_server.on("/api/status", [=]() { handleApiStatus(); });
   this->_server.on("/persist/wifi", [=]() { handlePersistWifi(); });
   this->_server.on("/persist/ws", [=]() { handlePersistWs(); });
+  this->_server.on("/persist/scale/multiplier", [=]() { handlePersistScaleMultiplier(); });
+  this->_server.on("/persist/scale/offset", [=]() { handlePersistScaleOffset(); });
+  this->_server.on("/persist/scale/tare", [=]() { handleScaleTare(); });
   this->_server.onNotFound([=]() { handleNotFound(); });
   this->_server.begin(this->_port);
 }
@@ -23,6 +26,18 @@ void ConfigWebServer::onWifiCredentials(OnWifiCredentialsFn onWifiCredentials) {
 
 void ConfigWebServer::onWebsocketUrl(OnWebsocketUrlFn onWebsocketUrl) {
   _onWebsocketUrl = std::move(onWebsocketUrl);
+}
+
+void ConfigWebServer::onScaleMultiplierSet(OnScaleMultiplierSetFn cb) {
+  _onScaleMultiplierSet = std::move(cb);
+}
+
+void ConfigWebServer::onScaleOffsetSet(OnScaleOffsetSetFn cb) {
+  _onScaleOffsetSet = std::move(cb);
+}
+
+void ConfigWebServer::onScaleTare(OnScaleTareFn cb) {
+  _onScaleTare = std::move(cb);
 }
 
 ESP8266WebServer &ConfigWebServer::server() {
@@ -63,6 +78,9 @@ void ConfigWebServer::handleApiStatus() {
   doc["currentSavedSSID"] = statusData.appConfig.SSID;
   doc["currentPasswordLen"] = strnlen(statusData.appConfig.psk, ARRAY_SIZE(statusData.appConfig.psk));
   doc["websocketURL"] = statusData.appConfig.websocketURL;
+  doc["scaleMultiplier"] = statusData.appConfig.scale.multiplier;
+  doc["scaleOffset"] = statusData.appConfig.scale.offset;
+  doc["scaleReading"] = statusData.scaleReading;
 
   String json = "";
   serializeJson(doc, json);
@@ -71,10 +89,23 @@ void ConfigWebServer::handleApiStatus() {
   yield();
 }
 
-void ConfigWebServer::handlePersistWifi() {
-  // don't handle GET or HEAD etc. if someone comes to this page via page refresh
+bool ConfigWebServer::requiredHttpPostMethod() {
   if (_server.method() != HTTP_POST) {
     _server.send(405, "text/plain", "Method Not Allowed");
+    return true;
+  }
+
+  return false;
+}
+
+void ConfigWebServer::redirectToIndex() {
+  _server.sendHeader("Location", "/");
+  _server.send(302);
+}
+
+void ConfigWebServer::handlePersistWifi() {
+  // don't handle GET or HEAD etc. if someone comes to this page via page refresh
+  if (requiredHttpPostMethod()) {
     return;
   }
 
@@ -98,16 +129,12 @@ void ConfigWebServer::handlePersistWifi() {
     _onWifiCredentials(ssid, psk);
   }
 
-  // Redirect user back to index
-  _server.sendHeader("Location", "/");
-  _server.send(302);
+  redirectToIndex();
   yield();
 }
 
 void ConfigWebServer::handlePersistWs() {
-  // don't handle GET or HEAD etc. if someone comes to this page via page refresh
-  if (_server.method() != HTTP_POST) {
-    _server.send(405, "text/plain", "Method Not Allowed");
+  if (requiredHttpPostMethod()) {
     return;
   }
 
@@ -129,9 +156,62 @@ void ConfigWebServer::handlePersistWs() {
     _onWebsocketUrl(wsUrl);
   }
 
-  // Redirect user back to index
-  _server.sendHeader("Location", "/");
-  _server.send(302);
+  redirectToIndex();
+  yield();
+}
+
+void ConfigWebServer::handlePersistScaleMultiplier() {
+  if (requiredHttpPostMethod()) {
+    return;
+  }
+
+  float multiplier = 1.0;
+  for (uint8_t i = 0; i < _server.args(); i++) {
+    if (_server.argName(i) == "scale.multiplier") {
+      sscanf(_server.arg(i).c_str(), "%f", &multiplier);
+      break;
+    }
+  }
+
+  if (_onScaleMultiplierSet != nullptr) {
+    _onScaleMultiplierSet(multiplier);
+  }
+
+  redirectToIndex();
+  yield();
+}
+
+void ConfigWebServer::handlePersistScaleOffset() {
+  if (requiredHttpPostMethod()) {
+    return;
+  }
+
+  int32_t offset = 0;
+  for (uint8_t i = 0; i < _server.args(); i++) {
+    if (_server.argName(i) == "scale.offset") {
+      sscanf(_server.arg(i).c_str(), "%" PRId32, &offset);
+      break;
+    }
+  }
+
+  if (_onScaleOffsetSet != nullptr) {
+    _onScaleOffsetSet(offset);
+  }
+
+  redirectToIndex();
+  yield();
+}
+
+void ConfigWebServer::handleScaleTare() {
+  if (requiredHttpPostMethod()) {
+    return;
+  }
+
+  if (_onScaleTare != nullptr) {
+    _onScaleTare();
+  }
+
+  redirectToIndex();
   yield();
 }
 

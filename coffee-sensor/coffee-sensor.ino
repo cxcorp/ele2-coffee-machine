@@ -18,8 +18,6 @@ using esp8266::polledTimeout::oneShotMs;
 #define LOADCELL_CLK D3
 #define TARE_PIN D6
 
-#define SCALE_CALIBRATION -230000
-
 using namespace websockets;
 
 #define DRD_TIMEOUT 2
@@ -40,6 +38,8 @@ ConfigWebServer configServer(80);
 HX711 scale;
 WebsocketsClient wsClient;
 
+float scaleReading = 0;
+
 // firmware update signing key
 BearSSL::PublicKey *signPubKey = nullptr;
 BearSSL::HashSHA256 *hash = nullptr;
@@ -53,12 +53,14 @@ BearSSL::SigningVerifier *sign = nullptr;
 static const char firmwareUpdateHttpsFingerprint[] PROGMEM = "6F E5 D6 DF FC 00 35 E5 F7 43 92 3F 00 B0 41 0F D1 1E B4 6B";
 #endif
 
+// Config web server calls this function to get the data to show on the web page
 StatusData configGetStatus() {
   StatusData statusData;
   statusData.fwVersion = FW_VERSION;
   statusData.fwTimestamp = FW_TIMESTAMP;
   statusData.wifiStatus = WiFi.status();
   statusData.espFreeHeap = ESP.getFreeHeap();
+  statusData.scaleReading = scaleReading;
   if (!configPersistence.read(statusData.appConfig)) {
     Serial.println("Failed to read config");
     statusData.appConfig.SSID[0] = '\0';
@@ -72,7 +74,6 @@ StatusData configGetStatus() {
 void configOnWifiCredentials(const char *ssid, const char *psk) {
   ConfigPersistence::Config config;
   configPersistence.read(config);
-  Serial.printf("Persisting credentials: %s, %s\n", ssid, psk);
   strlcpy(config.SSID, ssid, ARRAY_SIZE(config.SSID));
   strlcpy(config.psk, psk, ARRAY_SIZE(config.psk));
   configPersistence.write(config);
@@ -82,6 +83,34 @@ void configOnWebsocketUrl(const char *websocketUrl) {
   ConfigPersistence::Config config;
   configPersistence.read(config);
   strlcpy(config.websocketURL, websocketUrl, ARRAY_SIZE(config.websocketURL));
+  configPersistence.write(config);
+}
+
+void configOnScaleMultiplierSet(float newMultiplier) {
+  scale.set_scale(newMultiplier);
+
+  ConfigPersistence::Config config;
+  configPersistence.read(config);
+  config.scale.multiplier = newMultiplier;
+  configPersistence.write(config);
+}
+
+void configOnScaleOffsetSet(int32_t newOffset) {
+  scale.set_offset(newOffset);
+
+  ConfigPersistence::Config config;
+  configPersistence.read(config);
+  config.scale.offset = newOffset;
+  configPersistence.write(config);
+}
+
+void configOnScaleTare() {
+  scale.tare();
+  int32_t offset = scale.get_offset();
+
+  ConfigPersistence::Config config;
+  configPersistence.read(config);
+  config.scale.offset = offset;
   configPersistence.write(config);
 }
 
@@ -173,6 +202,9 @@ void setup() {
     configServer.onGetStatusData(configGetStatus);
     configServer.onWifiCredentials(configOnWifiCredentials);
     configServer.onWebsocketUrl(configOnWebsocketUrl);
+    configServer.onScaleMultiplierSet(configOnScaleMultiplierSet);
+    configServer.onScaleOffsetSet(configOnScaleOffsetSet);
+    configServer.onScaleTare(configOnScaleTare);
     configServer.begin();
     Serial.println("Config web server online");
   } else {
@@ -192,9 +224,8 @@ void setup() {
 
   pinMode(TARE_PIN, INPUT_PULLUP);
   scale.begin(LOADCELL_DT, LOADCELL_CLK);
-  scale.set_scale(SCALE_CALIBRATION);
-  scale.set_offset(-117878); // zero factor from scale.read_average()
-  //scale.tare(); //Reset the scale to 0
+  scale.set_scale(appConfig.scale.multiplier);
+  scale.set_offset(appConfig.scale.offset); // zero factor from scale.read_average()
 
   // let ws client connect to HTTPS
   wsClient.setInsecure();
@@ -244,25 +275,12 @@ static bool isTare() {
 }
 
 oneShotMs measurementTimeout(2000);
-static bool shouldMeasure() {
-  if (measurementTimeout) {
-    measurementTimeout.reset();
-    return true;
-  }
-  return false;
-}
-
 oneShotMs firmwareUpdateTimeout(60000);
 oneShotMs wifiDebugTimeout(2000);
 oneShotMs wsDebugTimeout(2000);
 oneShotMs wsReconnectTimeout(5000);
 
-void loop() {
-  if (isConfigMode) {
-    configServer.server().handleClient();
-    return;
-  }
-
+void normalModeLoop() {
   if (WiFi.status() != WL_CONNECTED) {
     // wait for auto reconnect by esp firmware
     if (wifiDebugTimeout) {
@@ -298,12 +316,15 @@ void loop() {
 
   wsClient.poll();
 
-  if (shouldMeasure()) {
+  if (measurementTimeout) {
     Serial.println("Measuring...");
 
-    float measurement = 2.54;
-    if (scale.wait_ready_timeout(1000)) {
+    uint32_t measureStart = millis();
+    float measurement;
+    if (scale.wait_ready_timeout(2000)) {
       measurement = scale.get_units(3);
+      Serial.printf("Measuring took %lums\n", millis() - measureStart);
+      measurementTimeout.reset();
     } else {
       Serial.println("Load cell timed out!");
       return;
@@ -317,7 +338,26 @@ void loop() {
     if (!wsClient.send(buffer)) {
       return;
     }
-    uint32_t duration = millis() - now;
-    Serial.printf("Sending took %ums\n", duration);
+    Serial.printf("Sending took %lums\n", millis() - now);
+  }
+}
+
+oneShotMs configMeasureTimeout = 1000;
+
+void configModeLoop() {
+  configServer.server().handleClient();
+
+  // read current weight to display on admin page every 1s
+  if (configMeasureTimeout && scale.wait_ready_timeout(1000)) {
+    scaleReading = scale.get_units(10);
+    configMeasureTimeout.reset();
+  }
+}
+
+void loop() {
+  if (isConfigMode) {
+    configModeLoop();
+  } else {
+    normalModeLoop();
   }
 }
