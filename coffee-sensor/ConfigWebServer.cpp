@@ -53,7 +53,7 @@ void ConfigWebServer::handleBootstrap() {
 
 void ConfigWebServer::handleApiStatus() {
   // size generated via https://arduinojson.org/v6/assistant/
-  StaticJsonDocument<JSON_OBJECT_SIZE(7) + 512> doc;
+  DynamicJsonDocument doc(JSON_OBJECT_SIZE(10) + 528);
 
   StatusData statusData = _getStatusData();
   doc["fwVersion"] = statusData.fwVersion;

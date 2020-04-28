@@ -28,7 +28,7 @@ boolean ConfigPersistence::read(Config &config) {
     return false;
   }
 
-  StaticJsonDocument<CONFIG_JSON_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_JSON_SIZE);
   DeserializationError err = deserializeJson(doc, f);
 
   if (err) {
@@ -61,10 +61,12 @@ boolean ConfigPersistence::write(const Config &config) {
     return false;
   }
 
-  StaticJsonDocument<CONFIG_JSON_SIZE> doc;
+  DynamicJsonDocument doc(CONFIG_JSON_SIZE);
   doc[SSID_KEY] = config.SSID;
   doc[PSK_KEY] = config.psk;
   doc[WEBSOCKET_URL_KEY] = config.websocketURL;
+  doc[SCALE_MULTIPLIER_KEY] = config.scale.multiplier;
+  doc[SCALE_OFFSET_KEY]  = config.scale.offset;
 
   serializeJson(doc, f);
 
