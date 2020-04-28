@@ -146,11 +146,12 @@ void setup() {
   Serial.println("SPIFFS initialized");
 
   initFirmwareUpdate();
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH);
 
   if (wasDoubleReset) {
     Serial.println("Configuration mode");
     isConfigMode = true;
-    pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
 
     WiFi.mode(WIFI_AP);
