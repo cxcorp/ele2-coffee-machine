@@ -12,11 +12,57 @@
 #include "SigningKey.h"
 #include "Version.h"
 
+
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
 using esp8266::polledTimeout::oneShotMs;
 
-#define LOADCELL_DT D2
-#define LOADCELL_CLK D3
-#define TARE_PIN D6
+//SCREEN_SCL   D1
+//SCREEN_SDA   D2
+//TARE_PIN     D3 Boot fails if pulled LOW
+//ROTARY_SW    D4 Boot fails if pulled LOW
+//LOADCELL_DT  D5
+//ROTARY_CLK   D6
+//ROTARY_DT    D7
+//LOADCELL_CLK D8 Boot fails if pulled HIGH
+
+
+
+
+#define LOADCELL_DT D5
+#define LOADCELL_CLK D8
+#define TARE_PIN D3
+
+
+//-------------------------------------------------------------//
+
+#define ROTARY_CLK D6
+#define ROTARY_DT D7
+#define ROTARY_SW D4
+volatile boolean rotationdirection;
+volatile boolean TurnDetected = false;
+
+
+//Defining screen
+#define SCREEN_SCL D1
+#define SCREEN_SDA D2
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+//-------------------------------------------------------------//
+
+
+
+#define SCALE_CALIBRATION -230000
+#define OFFSET_ORIGINAL -117878
+int OFFSET_TUNEABLE = -117878;
 
 using namespace websockets;
 
@@ -155,9 +201,22 @@ void initFirmwareUpdate() {
   ESPhttpUpdate.onProgress(onFirmwareUpdateProgress);
 }
 
-void setup() {  
+//---------------------------Interrupt---------------------------//
+//ICACHE_RAM_ATTR
+void ICACHE_RAM_ATTR isr() {
+  if (digitalRead(ROTARY_CLK)) {
+    rotationdirection = digitalRead(ROTARY_DT);
+  } else {
+    rotationdirection = !digitalRead(ROTARY_DT);
+  }
+  TurnDetected = true;
+}
+//---------------------------Interrupt---------------------------//
+
+void setup() {
   // detect double reset as quickly as possible
   bool wasDoubleReset = doubleReset.detect();
+  attachInterrupt (digitalPinToInterrupt(ROTARY_CLK), isr, FALLING);
 
   if (!wasDoubleReset) {
     // Give user a chance to do a double-reset before starting
@@ -224,12 +283,23 @@ void setup() {
   }
 
   pinMode(TARE_PIN, INPUT_PULLUP);
+  pinMode(ROTARY_SW, INPUT_PULLUP);
   scale.begin(LOADCELL_DT, LOADCELL_CLK);
   scale.set_scale(appConfig.scale.multiplier);
   scale.set_offset(appConfig.scale.offset); // zero factor from scale.read_average()
 
   // let ws client connect to HTTPS
   wsClient.setInsecure();
+
+
+  //Display init
+  //SCREEN_SCL D1
+  //SCREEN_SDA D2
+  Wire.begin(SCREEN_SDA, SCREEN_SCL);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false);
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
 }
 
 void updateFirmware() {
@@ -282,6 +352,11 @@ oneShotMs wsDebugTimeout(2000);
 oneShotMs wsReconnectTimeout(5000);
 
 void normalModeLoop() {
+  display.clearDisplay();
+  display.setCursor(10, 30);
+  display.println("Moccamaster IoT");
+  display.display();
+
   if (WiFi.status() != WL_CONNECTED) {
     // wait for auto reconnect by esp firmware
     if (wifiDebugTimeout) {
@@ -330,10 +405,10 @@ void normalModeLoop() {
       Serial.println("Load cell timed out!");
       return;
     }
-    
+
     char buffer[16] = {0};
     snprintf(buffer, 16, "%.3f", measurement);
-    
+
     Serial.printf("Sending: %s\n", buffer);
     uint32_t now = millis();
     if (!wsClient.send(buffer)) {
@@ -361,4 +436,101 @@ void loop() {
   } else {
     normalModeLoop();
   }
+}
+
+oneShotMs rotaryTimeOut(100);
+
+int window = 0;
+void configModeLoop() {
+  configServer.server().handleClient();
+  //Serial.println(digitalRead(ROTARY_SW));
+  if (!digitalRead(ROTARY_SW) && rotaryTimeOut) {
+    rotaryTimeOut.reset();
+    window++;
+    window = window % 3;
+  }
+
+  //volatile boolean rotationdirection;
+  //volatile boolean TurnDetected = false;
+
+  Serial.println(TurnDetected);
+  if (TurnDetected && window == 1) {
+    Serial.println("WUHUHUHUHUHU!!!");
+    if (rotationdirection) {
+      OFFSET_TUNEABLE += 1000;
+    } else {
+      OFFSET_TUNEABLE -= 1000;
+    }
+  }
+
+  TurnDetected = false;
+
+
+
+  display.clearDisplay();
+
+  if (window == 0) {
+
+    if (scale.wait_ready_timeout(1000)) {
+      float measurement = scale.get_units(3);
+      display.setCursor(0, 0);
+      display.println("Current weight: " + String(measurement));
+    } else {
+      display.setCursor(0, 0);
+      display.println("Current weight: ??.??");
+    }
+
+    display.setCursor(0, 20);
+    display.println("Calibration: " + String(SCALE_CALIBRATION));
+
+    display.setCursor(0, 40);
+    display.println("Original: " + String(-230000));
+
+    display.setCursor(106, 56);
+    display.println(String(window + 1) + "/3");
+  }
+
+
+
+  if (window == 1) {
+    if (scale.wait_ready_timeout(1000)) {
+      float measurement = scale.get_units(3);
+      display.setCursor(0, 0);
+      display.println("Current weight: " + String(measurement));
+    } else {
+      display.setCursor(0, 0);
+      display.println("Current weight: ??.??");
+    }
+
+    display.setCursor(0, 20);
+    display.println("Offset: " + String(OFFSET_TUNEABLE));
+
+    display.setCursor(0, 40);
+    display.println("Original: " + String(OFFSET_ORIGINAL));
+
+    display.setCursor(106, 56);
+    display.println(String(window + 1) + "/3");
+  }
+
+  if (window == 2) {
+    display.setCursor(10, 30);
+    display.println("Service mode 3");
+
+    display.setCursor(106, 56);
+    display.println(String(window + 1) + "/3");
+  }
+  display.display();
+}
+
+
+
+void loop() {
+
+  if (isConfigMode) {
+    configModeLoop();
+  } else {
+    normalModeLoop();
+  }
+
+
 }
