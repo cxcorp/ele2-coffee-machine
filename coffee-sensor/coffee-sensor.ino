@@ -2,6 +2,9 @@
 #include <ESP8266httpUpdate.h>
 #include <ESP8266WiFi.h>
 #include <FS.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 #include <ArduinoWebsockets.h>
 #include <PolledTimeout.h>
 #include <DoubleResetDetect.h>
@@ -12,59 +15,30 @@
 #include "SigningKey.h"
 #include "Version.h"
 
-
-#include <SPI.h>
-#include <Wire.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
-
 using esp8266::polledTimeout::oneShotMs;
 
-//SCREEN_SCL   D1
-//SCREEN_SDA   D2
-//TARE_PIN     D3 Boot fails if pulled LOW
-//ROTARY_SW    D4 Boot fails if pulled LOW
-//LOADCELL_DT  D5
-//ROTARY_CLK   D6
-//ROTARY_DT    D7
-//LOADCELL_CLK D8 Boot fails if pulled HIGH
-
-
-
+// SCREEN_SCL        D1
+// SCREEN_SDA        D2
+//                   D3   Boot fails if pulled LOW
+//                   D4   Boot fails if pulled LOW, LED_BUILTIN
+// LOADCELL_DT       D5
+// LOADCELL_CLK      D6
+// SCREEN_TOGGLE_PIN D7
+//                   D8   Boot fails if pulled HIGH
 
 #define LOADCELL_DT D5
-#define LOADCELL_CLK D8
-#define TARE_PIN D3
+#define LOADCELL_CLK D6
 
-
-//-------------------------------------------------------------//
-
-#define ROTARY_CLK D6
-#define ROTARY_DT D7
-#define ROTARY_SW D4
-volatile boolean rotationdirection;
-volatile boolean TurnDetected = false;
-
-
-//Defining screen
+#define SCREEN_TOGGLE_PIN D7
 #define SCREEN_SCL D1
 #define SCREEN_SDA D2
+
+using namespace websockets;
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1
-
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-//-------------------------------------------------------------//
-
-
-
-#define SCALE_CALIBRATION -230000
-#define OFFSET_ORIGINAL -117878
-int OFFSET_TUNEABLE = -117878;
-
-using namespace websockets;
 
 #define DRD_TIMEOUT 2
 #define DRD_MEM_ADDR 0x00
@@ -201,22 +175,9 @@ void initFirmwareUpdate() {
   ESPhttpUpdate.onProgress(onFirmwareUpdateProgress);
 }
 
-//---------------------------Interrupt---------------------------//
-//ICACHE_RAM_ATTR
-void ICACHE_RAM_ATTR isr() {
-  if (digitalRead(ROTARY_CLK)) {
-    rotationdirection = digitalRead(ROTARY_DT);
-  } else {
-    rotationdirection = !digitalRead(ROTARY_DT);
-  }
-  TurnDetected = true;
-}
-//---------------------------Interrupt---------------------------//
-
 void setup() {
   // detect double reset as quickly as possible
   bool wasDoubleReset = doubleReset.detect();
-  attachInterrupt (digitalPinToInterrupt(ROTARY_CLK), isr, FALLING);
 
   if (!wasDoubleReset) {
     // Give user a chance to do a double-reset before starting
@@ -237,6 +198,15 @@ void setup() {
   initFirmwareUpdate();
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
+
+  Wire.begin(SCREEN_SDA, SCREEN_SCL);
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false);
+  display.clearDisplay();
+  display.display();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+
+  pinMode(SCREEN_TOGGLE_PIN, INPUT_PULLUP);
 
   if (wasDoubleReset) {
     Serial.println("Configuration mode");
@@ -282,24 +252,12 @@ void setup() {
     }
   }
 
-  pinMode(TARE_PIN, INPUT_PULLUP);
-  pinMode(ROTARY_SW, INPUT_PULLUP);
   scale.begin(LOADCELL_DT, LOADCELL_CLK);
   scale.set_scale(appConfig.scale.multiplier);
   scale.set_offset(appConfig.scale.offset); // zero factor from scale.read_average()
 
   // let ws client connect to HTTPS
   wsClient.setInsecure();
-
-
-  //Display init
-  //SCREEN_SCL D1
-  //SCREEN_SDA D2
-  Wire.begin(SCREEN_SDA, SCREEN_SCL);
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C, false, false);
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
 }
 
 void updateFirmware() {
@@ -336,15 +294,6 @@ void updateFirmware() {
   }
 }
 
-oneShotMs tareTimeout(1000);
-static bool isTare() {
-  if (tareTimeout) {
-    tareTimeout.reset();
-    return digitalRead(TARE_PIN) == 0;
-  }
-  return false;
-}
-
 oneShotMs measurementTimeout(2000);
 oneShotMs firmwareUpdateTimeout(60000);
 oneShotMs wifiDebugTimeout(2000);
@@ -352,11 +301,6 @@ oneShotMs wsDebugTimeout(2000);
 oneShotMs wsReconnectTimeout(5000);
 
 void normalModeLoop() {
-  display.clearDisplay();
-  display.setCursor(10, 30);
-  display.println("Moccamaster IoT");
-  display.display();
-
   if (WiFi.status() != WL_CONNECTED) {
     // wait for auto reconnect by esp firmware
     if (wifiDebugTimeout) {
@@ -382,12 +326,6 @@ void normalModeLoop() {
       wsReconnectTimeout.reset();
     }
     return;
-  }
-
-  if (isTare()) {
-    Serial.println("Tare");
-    scale.tare();
-    yield();
   }
 
   wsClient.poll();
@@ -418,119 +356,82 @@ void normalModeLoop() {
   }
 }
 
-oneShotMs configMeasureTimeout = 1000;
+oneShotMs windowChangeDebounce(200);
+oneShotMs windowRefresh(33); // 30 FPS is enough for us
+oneShotMs configMeasureTimeout(1000);
+uint32_t lastWindowChange = 0;
+#define CHANGE_WINDOW_INTERVAL 10000
 
-void configModeLoop() {
-  configServer.server().handleClient();
+#define WINDOW_COUNT 2
+enum ConfigWindow : uint8_t {
+  WIFI_CREDS = 0,
+  CALIBRATION = 1
+};
 
-  // read current weight to display on admin page every 1s
-  if (configMeasureTimeout && scale.wait_ready_timeout(1000)) {
-    scaleReading = scale.get_units(10);
-    configMeasureTimeout.reset();
-  }
-}
+ConfigWindow window = ConfigWindow::WIFI_CREDS;
 
-void loop() {
-  if (isConfigMode) {
-    configModeLoop();
-  } else {
-    normalModeLoop();
-  }
-}
+// separate prototype here because Arduino IDE autogenerates function prototypes
+// in .ino and places them after the last #include so ConfigWindow is undefined,
+// meaning that ConfigWindow hasn't been defined yet there
+void drawConfigScreen(ConfigWindow window, float windowProgress);
 
-oneShotMs rotaryTimeOut(100);
-
-int window = 0;
-void configModeLoop() {
-  configServer.server().handleClient();
-  //Serial.println(digitalRead(ROTARY_SW));
-  if (!digitalRead(ROTARY_SW) && rotaryTimeOut) {
-    rotaryTimeOut.reset();
-    window++;
-    window = window % 3;
-  }
-
-  //volatile boolean rotationdirection;
-  //volatile boolean TurnDetected = false;
-
-  Serial.println(TurnDetected);
-  if (TurnDetected && window == 1) {
-    Serial.println("WUHUHUHUHUHU!!!");
-    if (rotationdirection) {
-      OFFSET_TUNEABLE += 1000;
-    } else {
-      OFFSET_TUNEABLE -= 1000;
-    }
-  }
-
-  TurnDetected = false;
-
-
-
+void drawConfigScreen(ConfigWindow window, float windowProgress) {
   display.clearDisplay();
 
-  if (window == 0) {
-
-    if (scale.wait_ready_timeout(1000)) {
-      float measurement = scale.get_units(3);
-      display.setCursor(0, 0);
-      display.println("Current weight: " + String(measurement));
-    } else {
-      display.setCursor(0, 0);
-      display.println("Current weight: ??.??");
-    }
+  if (window == ConfigWindow::CALIBRATION) {
+    display.setCursor(0, 0);
+    display.printf("Current weight:      %.3f", scaleReading);
 
     display.setCursor(0, 20);
-    display.println("Calibration: " + String(SCALE_CALIBRATION));
+    display.printf("Scale multiplier:    %.1f", scale.get_scale());
 
     display.setCursor(0, 40);
-    display.println("Original: " + String(-230000));
-
-    display.setCursor(106, 56);
-    display.println(String(window + 1) + "/3");
-  }
-
-
-
-  if (window == 1) {
-    if (scale.wait_ready_timeout(1000)) {
-      float measurement = scale.get_units(3);
-      display.setCursor(0, 0);
-      display.println("Current weight: " + String(measurement));
-    } else {
-      display.setCursor(0, 0);
-      display.println("Current weight: ??.??");
-    }
-
+    display.printf("Scale offset (tare): %ld", scale.get_offset());
+  } else if (window == ConfigWindow::WIFI_CREDS) {
+    display.setCursor(0, 0);
+    display.printf("SSID:\n%s", CONFIG_AP_SSID);
     display.setCursor(0, 20);
-    display.println("Offset: " + String(OFFSET_TUNEABLE));
-
+    display.printf("Password:\n%s", CONFIG_AP_PASSPHRASE);
     display.setCursor(0, 40);
-    display.println("Original: " + String(OFFSET_ORIGINAL));
-
-    display.setCursor(106, 56);
-    display.println(String(window + 1) + "/3");
+    display.printf("Admin panel:\n%s:80", configApLocalIp.toString().c_str());
   }
 
-  if (window == 2) {
-    display.setCursor(10, 30);
-    display.println("Service mode 3");
+  display.setCursor(106, 53);
+  display.printf("%d/%d", window + 1, WINDOW_COUNT);
 
-    display.setCursor(106, 56);
-    display.println(String(window + 1) + "/3");
-  }
+  int16_t x,y;
+  uint16_t w,h;
+  display.getTextBounds("1/2", 106, 53, &x, &y, &w, &h);
+  display.fillRect(106, 62, constrain(w * windowProgress, 0, w), 2, WHITE);
+
   display.display();
 }
 
+void configModeLoop() {
+  configServer.server().handleClient();
 
+  // read current weight to display on admin page
+  if (configMeasureTimeout && scale.wait_ready_timeout(1000)) {
+    scaleReading = scale.get_units(4);
+    configMeasureTimeout.reset();
+  }
+
+  int now = millis();
+  if (now - lastWindowChange >= CHANGE_WINDOW_INTERVAL) {
+    window = (ConfigWindow)(((uint8_t)window + 1) % WINDOW_COUNT);
+    lastWindowChange = now;
+  }
+
+  if (windowRefresh) {
+    windowRefresh.reset();
+    drawConfigScreen(window, (now - lastWindowChange) / (float)CHANGE_WINDOW_INTERVAL);
+  }
+}
 
 void loop() {
-
   if (isConfigMode) {
     configModeLoop();
   } else {
     normalModeLoop();
   }
-
-
 }
