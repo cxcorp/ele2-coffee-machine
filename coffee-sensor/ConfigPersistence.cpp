@@ -7,6 +7,20 @@
 #define SCALE_MULTIPLIER_KEY "scale_multiplier"
 #define SCALE_OFFSET_KEY "scale_offset"
 
+void ConfigPersistence::initializeFile() {
+  if (this->_fs.exists(this->_filename)) {
+    ConfigPersistence::Config testConfig;
+    if (read(testConfig)) {
+      // config was read successfully, file is good
+      return;
+    }
+    // not read successfully, zero it
+  }
+
+  ConfigPersistence::Config defaultConfig;
+  write(defaultConfig);
+}
+
 boolean ConfigPersistence::read(Config &config) {
   config.SSID[0] = '\0';
   config.psk[0] = '\0';

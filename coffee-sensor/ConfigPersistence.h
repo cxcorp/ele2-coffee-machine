@@ -37,6 +37,7 @@ public:
   : _filename(filename), _fs(fs) {
   }
 
+  void initializeFile();
   boolean read(ConfigPersistence::Config &out);
   boolean write(const ConfigPersistence::Config &config);
 

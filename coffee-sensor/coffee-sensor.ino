@@ -172,6 +172,7 @@ void setup() {
 
   Serial.println("Initializing SPIFFS");
   SPIFFS.begin();
+  configPersistence.initializeFile();
   Serial.println("SPIFFS initialized");
 
   initFirmwareUpdate();
