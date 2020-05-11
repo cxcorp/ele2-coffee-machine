@@ -37,8 +37,8 @@ public:
   : _filename(filename), _fs(fs) {
   }
 
-  boolean read(Config &out);
-  boolean write(const Config &config);
+  boolean read(ConfigPersistence::Config &out);
+  boolean write(const ConfigPersistence::Config &config);
 
 private:
   const char *_filename;
