@@ -110,13 +110,8 @@ void initFirmwareUpdate() {
 
   ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
   ESPhttpUpdate.onStart([]() {
-    // close FS
+    // close FS, apparently a good idea in case there are any file handles open
     SPIFFS.end();
-    // disconnect websocket so server doesn't keep it alive for nothing
-    wsClient.close();
-    // give firmware time to send close packet
-    delay(50);
-
     Serial.println("Firmware update starting");
   });
   ESPhttpUpdate.onEnd([]() {
@@ -212,7 +207,7 @@ void updateFirmware() {
   // to have connections open for both the websocket and the updater at the same time.
   // Close the websocket's TLS connection before starting to update.
   wsClient.close();
-  delay(10);
+  delay(50);
 
 #ifdef FIRMWARE_UPDATE_HTTPS
   WiFiClientSecure client;
