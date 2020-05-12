@@ -54,15 +54,15 @@ const getFileMetadata = lruMemoized(
 const getFileBuffer = lruMemoized(
   { max: 5, maxAge: config.FW_FILE_CACHE_TTL, keyFn: ([fileId]) => fileId },
   async function getFileBuffer(fileId) {
-    const { data: buffer } = await Google.drive().files.get(
+    const { data: arraybuffer } = await Google.drive().files.get(
       {
         alt: 'media',
         fileId: fileId,
       },
-      { responseType: 'buffer' }
+      { responseType: 'arraybuffer' }
     )
 
-    return buffer
+    return Buffer.from(arraybuffer)
   }
 )
 
