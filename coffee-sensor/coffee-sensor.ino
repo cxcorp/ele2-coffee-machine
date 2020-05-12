@@ -36,9 +36,9 @@ using esp8266::polledTimeout::oneShotMs;
 #define SCREEN_SDA D2
 
 // measure & send every 2 seconds
-#define SENSOR_MEASUREMENT_INTERVAL 2000
-// check for firmware updates every minute
-#define SENSOR_FW_UPDATE_INTERVAL 60000
+#define SENSOR_MEASUREMENT_INTERVAL (2 * 1000)
+// check for firmware updates every 5 minutes
+#define SENSOR_FW_UPDATE_INTERVAL (5 * 60 * 1000)
 
 using namespace websockets;
 
