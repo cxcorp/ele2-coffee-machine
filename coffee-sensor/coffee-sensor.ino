@@ -305,7 +305,6 @@ void normalModeLoop() {
   }
 }
 
-oneShotMs windowChangeDebounce(200);
 oneShotMs windowRefresh(33); // 30 FPS is enough for us
 oneShotMs configMeasureTimeout(1000);
 uint32_t lastWindowChange = 0;
