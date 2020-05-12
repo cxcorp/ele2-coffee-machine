@@ -2,6 +2,8 @@
 
 Server which serves OTA updates to the coffee-sensor.
 
+**out of date, updating some time after demo**
+
 ## Running locally under the same WiFi with the sensor
 
 1. Install nodejs, preferably version 12 or newer.
