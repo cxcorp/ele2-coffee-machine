@@ -241,6 +241,14 @@ oneShotMs wifiDebugTimeout(2000);
 oneShotMs wsDebugTimeout(2000);
 oneShotMs wsReconnectTimeout(5000);
 
+void loop() {
+  if (isConfigMode) {
+    configModeLoop();
+  } else {
+    normalModeLoop();
+  }
+}
+
 void normalModeLoop() {
   if (WiFi.status() != WL_CONNECTED) {
     // wait for auto reconnect by esp firmware
@@ -369,10 +377,3 @@ void configModeLoop() {
   }
 }
 
-void loop() {
-  if (isConfigMode) {
-    configModeLoop();
-  } else {
-    normalModeLoop();
-  }
-}
