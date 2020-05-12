@@ -1,22 +1,28 @@
 {
-  "name": "ota-update-server",
+  "name": "ota-update-server-gcloud",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "NODE_ENV=development nodemon src/index.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "cxcorp",
+  "license": "MIT",
   "private": true,
-  "license": "",
-  "dependencies": {
+  "devDependencies": {
     "dotenv": "^8.2.0",
+    "nodemon": "^2.0.3"
+  },
+  "dependencies": {
+    "drive-db": "^6.0.0",
     "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
+    "googleapis": "^50.0.0",
     "http-status-codes": "^1.4.0",
-    "nodemon": "^2.0.3",
-    "semver": "^7.3.0"
+    "lru-cache": "^5.1.1",
+    "node-cache": "^5.1.0",
+    "semver": "^7.3.2"
   }
 }

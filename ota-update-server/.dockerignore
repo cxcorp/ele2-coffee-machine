@@ -1,5 +1,5 @@
-firmware/*
-config/latest.json
-config/device-whitelist.json
-node_modules/
-.git
+*
+!src/
+!package.json
+!package-lock.json
+!README.md

@@ -1,4 +1,4 @@
-version: "3.7"
+version: "2.4"
 
 services:
   nodered:
@@ -18,6 +18,12 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=4000
+      - DEVICE_WHITELIST=["foo"]
+      - FW_FOLDER_ID=123123123
+      - FW_LATEST_SHEET_ID=123123123
+      - FW_VERSION_CACHE_TTL=60000
+      - FW_METADATA_CACHE_TTL=600000
+      - FW_FILE_CACHE_TTL=86400000
     ports:
       - 4000:4000
     volumes:
