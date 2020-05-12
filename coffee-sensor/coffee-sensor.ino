@@ -35,6 +35,11 @@ using esp8266::polledTimeout::oneShotMs;
 #define SCREEN_SCL D1
 #define SCREEN_SDA D2
 
+// measure & send every 2 seconds
+#define SENSOR_MEASUREMENT_INTERVAL 2000
+// check for firmware updates every minute
+#define SENSOR_FW_UPDATE_INTERVAL 60000
+
 using namespace websockets;
 
 #define SCREEN_WIDTH 128
@@ -235,8 +240,8 @@ void updateFirmware() {
   }
 }
 
-oneShotMs measurementTimeout(2000);
-oneShotMs firmwareUpdateTimeout(60000);
+oneShotMs measurementTimeout(SENSOR_MEASUREMENT_INTERVAL);
+oneShotMs firmwareUpdateTimeout(SENSOR_FW_UPDATE_INTERVAL);
 oneShotMs wifiDebugTimeout(2000);
 oneShotMs wsDebugTimeout(2000);
 oneShotMs wsReconnectTimeout(5000);
