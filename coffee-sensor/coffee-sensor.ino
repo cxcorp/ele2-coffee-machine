@@ -11,8 +11,10 @@
 #include <HX711.h>
 #include "ConfigPersistence.h"
 #include "ConfigWebServer.h"
+#include "ConfigServerCallbacks.h"
 #include "Util.h"
 #include "SigningKey.h"
+#include "StatusDataProvider.h"
 #include "Version.h"
 
 using esp8266::polledTimeout::oneShotMs;
@@ -48,13 +50,6 @@ ConfigPersistence configPersistence("/config.json", SPIFFS);
 bool isConfigMode = false;
 ConfigPersistence::Config appConfig;
 
-#define CONFIG_AP_SSID "OH sensor admin"
-#define CONFIG_AP_PASSPHRASE "12345678"
-const IPAddress configApLocalIp(192, 168, 1, 1);
-const IPAddress configApGateway(192, 168, 1, 1);
-const IPAddress configApSubnet(255, 255, 255, 0);
-ConfigWebServer configServer(80);
-
 HX711 scale;
 WebsocketsClient wsClient;
 
@@ -73,66 +68,23 @@ BearSSL::SigningVerifier *sign = nullptr;
 static const char firmwareUpdateHttpsFingerprint[] PROGMEM = "6F E5 D6 DF FC 00 35 E5 F7 43 92 3F 00 B0 41 0F D1 1E B4 6B";
 #endif
 
-// Config web server calls this function to get the data to show on the web page
-StatusData configGetStatus() {
-  StatusData statusData;
-  statusData.fwVersion = FW_VERSION;
-  statusData.fwTimestamp = FW_TIMESTAMP;
-  statusData.wifiStatus = WiFi.status();
-  statusData.espFreeHeap = ESP.getFreeHeap();
-  statusData.scaleReading = scaleReading;
-  if (!configPersistence.read(statusData.appConfig)) {
-    Serial.println("Failed to read config");
-    statusData.appConfig.SSID[0] = '\0';
-    statusData.appConfig.psk[0] = '\0';
-    statusData.appConfig.websocketURL[0] = '\0';
-  }
+StatusDataProvider statusDataProvider(
+  FW_VERSION,
+  FW_TIMESTAMP,
+  &scaleReading,
+  &WiFi,
+  &ESP,
+  &configPersistence
+);
 
-  return statusData;
-}
+ConfigServerCallbacks configServerCallbacks(&configPersistence, &scale);
 
-void configOnWifiCredentials(const char *ssid, const char *psk) {
-  ConfigPersistence::Config config;
-  configPersistence.read(config);
-  strlcpy(config.SSID, ssid, ARRAY_SIZE(config.SSID));
-  strlcpy(config.psk, psk, ARRAY_SIZE(config.psk));
-  configPersistence.write(config);
-}
-
-void configOnWebsocketUrl(const char *websocketUrl) {
-  ConfigPersistence::Config config;
-  configPersistence.read(config);
-  strlcpy(config.websocketURL, websocketUrl, ARRAY_SIZE(config.websocketURL));
-  configPersistence.write(config);
-}
-
-void configOnScaleMultiplierSet(float newMultiplier) {
-  scale.set_scale(newMultiplier);
-
-  ConfigPersistence::Config config;
-  configPersistence.read(config);
-  config.scale.multiplier = newMultiplier;
-  configPersistence.write(config);
-}
-
-void configOnScaleOffsetSet(int32_t newOffset) {
-  scale.set_offset(newOffset);
-
-  ConfigPersistence::Config config;
-  configPersistence.read(config);
-  config.scale.offset = newOffset;
-  configPersistence.write(config);
-}
-
-void configOnScaleTare() {
-  scale.tare();
-  int32_t offset = scale.get_offset();
-
-  ConfigPersistence::Config config;
-  configPersistence.read(config);
-  config.scale.offset = offset;
-  configPersistence.write(config);
-}
+#define CONFIG_AP_SSID "OH sensor admin"
+#define CONFIG_AP_PASSPHRASE "12345678"
+const IPAddress configApLocalIp(192, 168, 1, 1);
+const IPAddress configApGateway(192, 168, 1, 1);
+const IPAddress configApSubnet(255, 255, 255, 0);
+ConfigWebServer configServer(80, &statusDataProvider, &configServerCallbacks);
 
 void onFirmwareUpdateError(int err) {
   Serial.printf("Firmware update error: %d\n", err);
@@ -188,7 +140,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
 
-  Serial.println("coffee-sensor version " FW_VERSION ", built at " FW_TIMESTAMP);
+  Serial.println("coffee-sensor version " _FW_VERSION ", built at " _FW_TIMESTAMP);
 
   Serial.println("Initializing SPIFFS");
   SPIFFS.begin();
@@ -229,12 +181,6 @@ void setup() {
     Serial.println("SoftAP started");
 
     Serial.println("Initializing config web server");
-    configServer.onGetStatusData(configGetStatus);
-    configServer.onWifiCredentials(configOnWifiCredentials);
-    configServer.onWebsocketUrl(configOnWebsocketUrl);
-    configServer.onScaleMultiplierSet(configOnScaleMultiplierSet);
-    configServer.onScaleOffsetSet(configOnScaleOffsetSet);
-    configServer.onScaleTare(configOnScaleTare);
     configServer.begin();
     Serial.println("Config web server online");
   } else {

@@ -5,48 +5,26 @@
 #include <ESP8266WebServer.h>
 #include <functional>
 #include "ConfigPersistence.h"
-
-struct StatusData {
-  const char *fwVersion;
-  const char *fwTimestamp;
-  uint8_t wifiStatus;
-  uint32_t espFreeHeap;
-  float scaleReading;
-  ConfigPersistence::Config appConfig;
-};
-
-typedef StatusData (*GetStatusDataFn)();
-typedef void (*OnWifiCredentialsFn)(const char *ssid, const char *psk);
-typedef void (*OnWebsocketUrlFn)(const char *websocketUrl);
-typedef void (*OnScaleMultiplierSetFn)(float multiplier);
-typedef void (*OnScaleOffsetSetFn)(int32_t offset);
-typedef void (*OnScaleTareFn)();
+#include "ConfigStatusData.h"
+#include "StatusDataProvider.h"
+#include "ConfigServerCallbacks.h"
 
 class ConfigWebServer {
 public:
-  ConfigWebServer(uint16_t port) {
-    _port = port;
-  }
+  ConfigWebServer(
+    uint16_t port,
+    StatusDataProvider *statusDataProvider,
+    ConfigServerCallbacks *callbacks
+  ): _port(port), _statusDataProvider(statusDataProvider), _callbacks(callbacks)
+  {}
 
   void begin();
-  void onGetStatusData(GetStatusDataFn getStatusData);
-  void onWifiCredentials(OnWifiCredentialsFn onWifiCredentials);
-  void onWebsocketUrl(OnWebsocketUrlFn onWebsocketUrl);
-  void onScaleMultiplierSet(OnScaleMultiplierSetFn cb);
-  void onScaleOffsetSet(OnScaleOffsetSetFn cb);
-  void onScaleTare(OnScaleTareFn cb);
-
   ESP8266WebServer &server();
 
 private:
   uint16_t _port;
-  GetStatusDataFn _getStatusData = nullptr;
-  OnWifiCredentialsFn _onWifiCredentials = nullptr;
-  OnWebsocketUrlFn _onWebsocketUrl = nullptr;
-  OnScaleMultiplierSetFn _onScaleMultiplierSet = nullptr;
-  OnScaleOffsetSetFn _onScaleOffsetSet = nullptr;
-  OnScaleTareFn _onScaleTare = nullptr;
-
+  StatusDataProvider *_statusDataProvider;
+  ConfigServerCallbacks *_callbacks;
   ESP8266WebServer _server;
 
   bool requiredHttpPostMethod();

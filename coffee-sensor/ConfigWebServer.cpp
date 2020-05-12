@@ -16,30 +16,6 @@ void ConfigWebServer::begin() {
   this->_server.begin(this->_port);
 }
 
-void ConfigWebServer::onGetStatusData(GetStatusDataFn getStatusData) {
-  _getStatusData = std::move(getStatusData);
-}
-
-void ConfigWebServer::onWifiCredentials(OnWifiCredentialsFn onWifiCredentials) {
-  _onWifiCredentials = std::move(onWifiCredentials);
-}
-
-void ConfigWebServer::onWebsocketUrl(OnWebsocketUrlFn onWebsocketUrl) {
-  _onWebsocketUrl = std::move(onWebsocketUrl);
-}
-
-void ConfigWebServer::onScaleMultiplierSet(OnScaleMultiplierSetFn cb) {
-  _onScaleMultiplierSet = std::move(cb);
-}
-
-void ConfigWebServer::onScaleOffsetSet(OnScaleOffsetSetFn cb) {
-  _onScaleOffsetSet = std::move(cb);
-}
-
-void ConfigWebServer::onScaleTare(OnScaleTareFn cb) {
-  _onScaleTare = std::move(cb);
-}
-
 ESP8266WebServer &ConfigWebServer::server() {
   return this->_server;
 }
@@ -70,7 +46,7 @@ void ConfigWebServer::handleApiStatus() {
   // size generated via https://arduinojson.org/v6/assistant/
   DynamicJsonDocument doc(JSON_OBJECT_SIZE(10) + 528);
 
-  StatusData statusData = _getStatusData();
+  StatusData statusData = _statusDataProvider->get();
   doc["fwVersion"] = statusData.fwVersion;
   doc["fwTimestamp"] = statusData.fwTimestamp;
   doc["wifiStatus"] = Util::wlStatusString(statusData.wifiStatus);
@@ -125,9 +101,7 @@ void ConfigWebServer::handlePersistWifi() {
     return;
   }
 
-  if (_onWifiCredentials != nullptr) {
-    _onWifiCredentials(ssid, psk);
-  }
+  _callbacks->saveWifiCredentials(ssid, psk);
 
   redirectToIndex();
   yield();
@@ -152,9 +126,7 @@ void ConfigWebServer::handlePersistWs() {
     return;
   }
 
-  if (_onWebsocketUrl != nullptr) {
-    _onWebsocketUrl(wsUrl);
-  }
+  _callbacks->saveWebsocketUrl(wsUrl);
 
   redirectToIndex();
   yield();
@@ -173,9 +145,7 @@ void ConfigWebServer::handlePersistScaleMultiplier() {
     }
   }
 
-  if (_onScaleMultiplierSet != nullptr) {
-    _onScaleMultiplierSet(multiplier);
-  }
+  _callbacks->saveScaleMultiplier(multiplier);
 
   redirectToIndex();
   yield();
@@ -194,9 +164,7 @@ void ConfigWebServer::handlePersistScaleOffset() {
     }
   }
 
-  if (_onScaleOffsetSet != nullptr) {
-    _onScaleOffsetSet(offset);
-  }
+  _callbacks->saveScaleOffset(offset);
 
   redirectToIndex();
   yield();
@@ -207,9 +175,7 @@ void ConfigWebServer::handleScaleTare() {
     return;
   }
 
-  if (_onScaleTare != nullptr) {
-    _onScaleTare();
-  }
+  _callbacks->scaleTare();
 
   redirectToIndex();
   yield();
