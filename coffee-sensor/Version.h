@@ -3,7 +3,7 @@
 
 // don't override _FW_VERSION if we want to at some point inject it programmatically via build toolchain
 #ifndef _FW_VERSION
-#define _FW_VERSION "0.8.1"
+#define _FW_VERSION "0.8.2"
 #endif
 
 #define _FW_TIMESTAMP __DATE__ " " __TIME__

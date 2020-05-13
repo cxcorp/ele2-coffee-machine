@@ -25,13 +25,12 @@ using esp8266::polledTimeout::oneShotMs;
 //                   D4   Boot fails if pulled LOW, LED_BUILTIN
 // LOADCELL_DT       D5
 // LOADCELL_CLK      D6
-// SCREEN_TOGGLE_PIN D7
+//                   D7
 //                   D8   Boot fails if pulled HIGH
 
 #define LOADCELL_DT D5
 #define LOADCELL_CLK D6
 
-#define SCREEN_TOGGLE_PIN D7
 #define SCREEN_SCL D1
 #define SCREEN_SDA D2
 
@@ -157,8 +156,6 @@ void setup() {
   display.display();
   display.setTextSize(1);
   display.setTextColor(WHITE);
-
-  pinMode(SCREEN_TOGGLE_PIN, INPUT_PULLUP);
 
   if (wasDoubleReset) {
     Serial.println("Configuration mode");
@@ -380,4 +377,3 @@ void configModeLoop() {
     drawConfigScreen(window, (now - lastWindowChange) / (float)CHANGE_WINDOW_INTERVAL);
   }
 }
-
