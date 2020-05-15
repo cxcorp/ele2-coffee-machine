@@ -107,7 +107,6 @@ bot.onText(/^\/status/, async msg => {
           new Date(weights[0].timestamp),
           new Date(),
           {
-            locale: fiLocale,
             includeSeconds: true,
             addSuffix: true
           }
@@ -115,7 +114,6 @@ bot.onText(/^\/status/, async msg => {
           new Date(weights[weights.length - 1].timestamp),
           new Date(),
           {
-            locale: fiLocale,
             includeSeconds: true,
             addSuffix: true
           }
