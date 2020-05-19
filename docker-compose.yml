@@ -3,6 +3,7 @@ version: "2.4"
 services:
   nodered:
     image: nodered/node-red:1.0.4-12
+    restart: unless-stopped
     ports:
       - 1880:1880
     environment:
@@ -14,6 +15,7 @@ services:
   ota-update-server:
     image: registry.cxcorp.systems/ota-update-server
     build: ./ota-update-server
+    restart: unless-stopped
     init: true
     environment:
       - HOST=0.0.0.0
@@ -33,6 +35,7 @@ services:
   bot:
     image: registry.cxcorp.systems/coffee-system-bot
     build: ./bot
+    restart: unless-stopped
     init: true
     environment:
       - NODE_ENV=production
@@ -47,6 +50,7 @@ services:
 
   db:
     image: postgres:12
+    restart: unless-stopped
     environment:
       - TZ=Europe/Helsinki
       - POSTGRES_PASSWORD=123
@@ -58,7 +62,6 @@ services:
 
   adminer:
     image: adminer:4.7-standalone
-    restart: always
     ports:
       - 8080:8080
 
