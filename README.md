@@ -28,6 +28,7 @@ Coffee machine IoT project. Easily check the amount of coffee in the pan via a T
         - [5.8 - MAC whitelist](#58-mac-whitelist)
     - [TODO: knex migrations for Bot](#todo--knex-migrations-for-bot)
     + [TODO](#todo)
+* [Automatic deployment (CI/CD)](#automatic-deployment-cicd)
 * [Sensor schematic](#sensor-schematic)
 
 ## Directories
@@ -294,6 +295,12 @@ After we configure the sensor itself, it will try to fetch firmware updates befo
     - [ ] ws url
     - [ ] scale calibration
     - [ ] tare
+
+## Automatic deployment (CI/CD)
+
+This GitHub repository uses [GitHub Actions](https://github.com/features/actions) to automate deployment to production. The `bot` and `ota-update-server` services' Docker images are built and pushed to a private Docker repository whenever a commit is made to the `master` branch. Currently, we use [`containrrr/watchtower`](https://github.com/containrrr/watchtower) to automatically monitor for new images and restart the Telegram bot and OTA update server.
+
+See the workflow file [here](https://github.com/cxcorp/ele2-coffee-machine/blob/master/.github/workflows/blank.yml).
 
 ## Sensor schematic
 
