@@ -10,4 +10,8 @@
 
 ## Architecture
 
-![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/architecture-v1.png)
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/architecture-v2.png)
+
+## Sensor schematic
+
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/schematic-v2.png)
