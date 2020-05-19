@@ -7,6 +7,7 @@ Coffee machine IoT project. Easily check the amount of coffee in the pan via a T
 * [Table of contents](#table-of-contents)
 * [Directories](#directories)
 * [Architecture](#architecture)
+* [Photos](#photos)
 * [Setting up the project](#setting-up-the-project)
     + [1. Install Docker](#1-install-docker)
     + [2. Clone or download the repository](#2-clone-or-download-the-repository)
@@ -51,6 +52,26 @@ The project contains multiple components:
 - A [PostgreSQL](https://www.postgresql.org/) database which contains the data sent by the sensor
 
 ![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/architecture-v2.png)
+
+## Photos
+
+Click on an image to view the full-size image.
+
+<a href="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/blowup.png">
+<img src="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/blowup_tn.jpg" alt="" />
+</a>
+
+<a href="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/closeup.png">
+<img src="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/closeup_tn.jpg" alt="" />
+</a>
+
+<a href="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/front.png">
+<img src="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/front_tn.jpg" alt="" />
+</a>
+
+<a href="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/side.png">
+<img src="https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/render-images/side_tn.jpg" alt="" />
+</a>
 
 ## Setting up the project
 
