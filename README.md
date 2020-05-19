@@ -4,17 +4,30 @@ Coffee machine IoT project. Easily check the amount of coffee in the pan via a T
 
 ## Table of contents
 
+* [Table of contents](#table-of-contents)
 * [Directories](#directories)
 * [Architecture](#architecture)
 * [Setting up the project](#setting-up-the-project)
     + [1. Install Docker](#1-install-docker)
     + [2. Clone or download the repository](#2-clone-or-download-the-repository)
     + [3. Set up the database and Node-RED](#3-set-up-the-database-and-node-red)
-        - [3.1 PostgreSQL database](#31-postgresql-database)
-        - [3.2 Node-RED](#32-node-red)
-            * [Starting](#starting)
-            * [Importing flows](#importing-flows)
-            * [Configure database connection](#configure-database-connection)
+        - [3.1 - PostgreSQL database](#31-postgresql-database)
+        - [3.2 - Node-RED](#32-node-red)
+            * [3.2.1 - Starting](#321-starting)
+            * [3.2.2 - Importing flows](#322-importing-flows)
+            * [3.2.3 - Configure database connection](#323-configure-database-connection)
+    + [4. Telegram bot](#4-telegram-bot)
+    + [5. OTA update server](#5-ota-update-server)
+        - [5.1 - Create the Google Drive folder and Sheets spreadsheet](#51-create-the-google-drive-folder-and-sheets-spreadsheet)
+        - [5.2 - Create a Service account](#52-create-a-service-account)
+        - [5.3 - Enable the Drive and Sheets API](#53-enable-the-drive-and-sheets-api)
+        - [5.4 - Give access to the folder and spreadsheet to the service account](#54-give-access-to-the-folder-and-spreadsheet-to-the-service-account)
+        - [5.5 - Get the folder's and spreadsheet's ID](#55-get-the-folders-and-spreadsheets-id)
+        - [5.6 - Configure environment variables](#56-configure-environment-variables)
+        - [5.7 - Start the server](#57-start-the-server)
+        - [5.8 - MAC whitelist](#58-mac-whitelist)
+    - [TODO: knex migrations for Bot](#todo--knex-migrations-for-bot)
+    + [TODO](#todo)
 * [Sensor schematic](#sensor-schematic)
 
 ## Directories
@@ -99,7 +112,7 @@ From [https://nodered.org/](https://nodered.org/):
 >
 > It provides a browser-based editor that makes it easy to wire together flows using the wide range of nodes in the palette that can be deployed to its runtime in a single-click.
 
-##### Starting
+##### 3.2.1 Starting
 
 After bringing up the dabase, start nodered with
 ```
@@ -109,13 +122,13 @@ You will see a new directory named `nodered-data/` appear. This directory is a [
 
 Open up your browser and go to [http://localhost:1880](http://localhost:1880). You may need to wait a second for nodered to start.
 
-##### Importing flows
+##### 3.2.2 Importing flows
 
 To configure nodered to do what we want, follow the [instructions here to import](https://nodered.org/docs/user-guide/editor/workspace/import-export) the `nodered-flow.json` file.
 
 ![](https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/install-instructions-images/nodered-import.png)
 
-##### Configure database connection
+##### 3.2.3 Configure database connection
 
 After importing the flow, you should see a cyan `postgres` node in the graph. Double-click on this node. A sidebar should appear. Click on the Edit button of the Server row:
 
@@ -133,22 +146,140 @@ Click on Add, then select the newly created Server from the drop-down. Click Don
 
 Click the red Deploy button in the top right. This will apply the changes we've created. We now have the websocket endpoint available for our sensor at `ws://localhost:1880/ws/weight`. Remember this URL. The `/ws/weight` part is configurable in nodered.
 
+### 4. Telegram bot
+
+Take a look at the environment variables in the `docker-compose.yml` file for the [service `bot`](https://github.com/cxcorp/ele2-coffee-machine/blob/0c9a638807471f15be85ed759a86901bb0d1fddf/docker-compose.yml#L35-L49).
+
+The variables you need to edit are the following:
+
+```bash
+TG_TOKEN=<bot token here>
+PG_HOST=db
+PG_PORT=5432
+PG_USER=coffee
+PG_PASSWORD=1234
+PG_DATABASE=coffee
+```
+
+Here the values for `PG_` are the same as previously configured for Node-RED.
+
+To get the Telegram Bot API token, you need to register an account with [Telegram](https://telegram.org/), then start a conversation with `@BotFather` and use the `/newbot` command to create a bot and get a token.
+
+### 5. OTA update server
+
+The OTA update server uses Google Drive as file storage, and for specifying the latest firmware version and filename. First, we need to create a Drive folder for the firmware, a Sheets spreadsheet where we store the latest version and filename, and a Google Cloud [Service account](https://cloud.google.com/iam/docs/service-accounts) with which we grant access to the server to these resources.
+
+#### 5.1 Create the Google Drive folder and Sheets spreadsheet
+
+1. Create a new folder in Google Drive
+2. Inside this folder, create a new Sheets spreadsheet, named e.g. "Current version".
+3. Inside this folder, create a new folder named e.g. "firmware".
+4. Open the Sheets spreadsheet
+5. Write fields like these in the spreadsheet:
+    ![](https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/install-instructions-images/ota-server-sheet-named-range.png)
+    - Make sure the "version" field is before the "filename" field.
+6. Select this 2x2 region, and open Data -> Named ranges
+7. Click on Add a range, and name this range `VersionTable`. **This name must be exactly `VersionTable`**.
+
+#### 5.2 Create a Service account
+
+1. Open the [Google Cloud console](https://console.cloud.google.com/home).
+2. Create a new Project
+3. In the search bar, search for "Service accounts"
+    ![](https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/install-instructions-images/gcloud-service-account.png)
+4. Create a new Service account. Name and description does not matter.
+5. Click on the newly created service account to see its details.
+6. In "Keys", create a new key. For the *type*, choose JSON. Download this file and store it somewhere safe. **This file is equivalent to the account's username & password, so make sure it's safe.**
+7. Copy the service account's email somewhere. We will need it shortly.
+
+#### 5.3 Enable the Drive and Sheets API
+
+1. In the [Google Cloud console](https://console.cloud.google.com/home), search for "Google Drive API"
+2. Click on Enable API
+3. Search for "Google Sheets API"
+4. Click on Enable API
+
+#### 5.4 Give access to the folder and spreadsheet to the service account
+
+1. Go to the spreadsheet we created in 5.1.
+2. Click on the green Share button in the top right
+3. Paste the service account's email address
+4. Change its role to Viewer
+5. Now go to Drive and right-click on the "firmware" folder. Click on "Share"
+6. Steps 3-4.
+
+#### 5.5 Get the folder's and spreadsheet's ID
+
+1. Open the firmware directory in Drive
+2. Copy the folder ID from the URL, write it down somewhere.
+    ![](https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/install-instructions-images/ota-server-folder-id.png)
+3. Open the version spreadsheet
+4. Copy the spreadsheet's ID from the URL, write it down somewhere.
+    ![](https://raw.githubusercontent.com/cxcorp/ele2-coffee-machine/master/documentation/install-instructions-images/ota-sever-spreadsheet-id.png)
+
+#### 5.6 Configure environment variables
+
+Open `docker-compose.yml` and find the `ota-update-server` service.
+
+```sh
+HOST=0.0.0.0
+PORT=4000
+DEVICE_WHITELIST=["foo"]                # MAC whitelist
+FW_FOLDER_ID=123123123                  # firmware folder ID
+FW_LATEST_SHEET_ID=123123123            # spreadsheet ID
+GAPI_AUTH_CREDENTIALS=json key          # service account JSON key
+FW_VERSION_CACHE_TTL=60000
+FW_METADATA_CACHE_TTL=600000
+FW_FILE_CACHE_TTL=86400000
+```
+
+1. Set `FW_FOLDER_ID` to the firmware folder's ID.
+2. Set `FW_LATEST_SHEET_ID` to the spreadsheet's ID
+3. Open the service account's .json key which you downloaded earlier. Remove line breaks from the file, and paste it after `GAPI_AUTH_CREDENTIALS=`. E.g.:
+    ```sh
+    GAPI_AUTH_CREDENTIALS={"type": "service_account","project_id": "test-1234","private_key_id": "12345-abcd","private_key": "-----BEGIN PRIVATE KEY-----..........
+    ```
+4. Make sure `GAPI_AUTH_CREDENTIALS` doesn't have line breaks, so it's all on the same line.
+
+#### 5.7 Start the server
+
+Now run
+```
+> docker-compose up -d ota-update-server
+```
+
+Again, `docker-compose logs -f ota-update-server` will show you the output of the program along with any error messages. `CTRL-C` gets you out of the logs view. The server is now running at `http://localhost:4000/update`
+
+#### 5.8 MAC whitelist
+
+The OTA update server requires the sensor's MAC address to be on the MAC whitelist. This whitelist is the `DEVICE_WHITELIST` environment variable. This variable is a JSON array, so it should look something like this:
+
+```bash
+DEVICE_WHITELIST=["ab:cd:ef:12:34:56","65:43:21:fe:dc:ba"]
+```
+
+After we configure the sensor itself, it will try to fetch firmware updates before being whitelisted. If it's not whitelisted, the OTA update server will reject the request and print the device's MAC address in the output. You can see this output with `docker-compose logs -f ota-update-server`, from which you can copy the MAC address to the `DEVICE_WHITELIST`. 
+
+**After changing environment variables on an already running service, you need to do `docker-compose up -d <service name>` again to restart it with the new variables.**
+
+#### TODO: knex migrations for Bot
+
 ### TODO
 
 - [x] docker & docker-compose:
 - [ ] surrounding infrastructure
     - [ ] bot
-        - botfather token
-        - db migrations
+        - [x] botfather token
+        - [ ] db migrations
     - [ ] update server
-        - self-signed certificate
-        - google cloud service account
+        - [ ] self-signed certificate
+        - [x] google cloud service account
             - json key
             - drive api
             - sheets api
-            - drive folder and sheets structure
-                - named range
-                - semver
+        - [x] drive folder and sheets structure
+            - named range
+            - semver
     - [x] nodered
         * import flow
         * url
@@ -157,11 +288,12 @@ Click the red Deploy button in the top right. This will apply the changes we've 
 - [ ] sensor
     - [x] dependencies
     - [x] setting up board in IDE
-    - public.key, private.key
-    - versioning: semver
-    - URLs
-    - scale calibration
-    - tare
+    - [ ] ota url, https, fingerprint
+    - [ ] public.key, private.key
+    - [ ] versioning: semver
+    - [ ] ws url
+    - [ ] scale calibration
+    - [ ] tare
 
 ## Sensor schematic
 
