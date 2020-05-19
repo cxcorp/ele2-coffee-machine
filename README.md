@@ -2,7 +2,7 @@
 
 Coffee machine IoT project. Easily check the amount of coffee in the pan via a Telegram bot. Electronics II course project.
 
-## Table of Contents
+## Table of contents
 
 * [Directories](#directories)
 * [Architecture](#architecture)
@@ -62,12 +62,6 @@ Click on the big green button at the top right of the Github repository. The fol
 
 As seen from the diagram, the sensor sends its data to the database via the Node-RED instance. Let's first set this part up.
 
-From [https://nodered.org/](https://nodered.org/):
-
-> Node-RED is a programming tool for wiring together hardware devices, APIs and online services in new and interesting ways.
->
-> It provides a browser-based editor that makes it easy to wire together flows using the wide range of nodes in the palette that can be deployed to its runtime in a single-click.
-
 #### 3.1 PostgreSQL database
 
 *If you are using a PostgreSQL database hosted elsewhere, you can skip this step. You may be interested in hosted PostgreSQL services, such as [ElephantSQL](https://www.elephantsql.com/) which has a fair free-tier.*
@@ -98,6 +92,12 @@ Here the `up` command instructs docker-compose to find a service from the `docke
 After running this command, the database will create the user and the database, and then restart. You can view its progress by doing `docker-compose logs -f db`, and exit the logs view with `CTRL-C`.
 
 #### 3.2 Node-RED
+
+From [https://nodered.org/](https://nodered.org/):
+
+> Node-RED is a programming tool for wiring together hardware devices, APIs and online services in new and interesting ways.
+>
+> It provides a browser-based editor that makes it easy to wire together flows using the wide range of nodes in the palette that can be deployed to its runtime in a single-click.
 
 ##### Starting
 
@@ -133,13 +133,14 @@ Click on Add, then select the newly created Server from the drop-down. Click Don
 
 Click the red Deploy button in the top right. This will apply the changes we've created. We now have the websocket endpoint available for our sensor at `ws://localhost:1880/ws/weight`. Remember this URL. The `/ws/weight` part is configurable in nodered.
 
+### TODO
 
-* docker & docker-compose:
-- surrounding infrastructure
-    - bot
+- [x] docker & docker-compose:
+- [ ] surrounding infrastructure
+    - [ ] bot
         - botfather token
         - db migrations
-    - update server
+    - [ ] update server
         - self-signed certificate
         - google cloud service account
             - json key
@@ -148,12 +149,14 @@ Click the red Deploy button in the top right. This will apply the changes we've 
             - drive folder and sheets structure
                 - named range
                 - semver
-    * nodered
+    - [x] nodered
         * import flow
         * url
-    * postgres
+    - [x] postgres
         * credentials
-- sensor
+- [ ] sensor
+    - [x] dependencies
+    - [x] setting up board in IDE
     - public.key, private.key
     - versioning: semver
     - URLs
