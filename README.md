@@ -2,6 +2,8 @@
 
 Coffee machine IoT project. Easily check the amount of coffee in the pan via a Telegram bot. Electronics II course project.
 
+## Table of Contents
+
 * [Directories](#directories)
 * [Architecture](#architecture)
 * [Setting up the project](#setting-up-the-project)
