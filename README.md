@@ -329,4 +329,4 @@ See the workflow file [here](https://github.com/cxcorp/ele2-coffee-machine/blob/
 
 ## Wiring diagram
 
-![](https://github.com/cxcorp/ele2-coffee-machine/blob/master/documentation/wiring_diagram.pdf)
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/wiring_diagram.pdf)
