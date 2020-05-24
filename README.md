@@ -7,7 +7,7 @@ Coffee machine IoT project. Easily check the amount of coffee in the pan via a T
 * [Table of contents](#table-of-contents)
 * [Directories](#directories)
 * [Architecture](#architecture)
-* [How parts are connected](#how-parts-are-connected)
+* [How parts are connected](#how-the-parts-are-connected)
 * [Parts](#parts)
 * [Photos](#photos)
 * [Setting up the project](#setting-up-the-project)
