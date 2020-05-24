@@ -8,6 +8,7 @@ Coffee machine IoT project. Easily check the amount of coffee in the pan via a T
 * [Directories](#directories)
 * [Architecture](#architecture)
 * [How parts are connected](#how-parts-are-connected)
+* [Parts](#parts)
 * [Photos](#photos)
 * [Setting up the project](#setting-up-the-project)
     + [1. Install Docker](#1-install-docker)
@@ -57,6 +58,15 @@ The project contains multiple components:
 ## How the parts are connected
 
 ![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/connections.png)
+
+## Parts
+
+- LOLIN D1 mini, https://docs.wemos.cc/en/latest/d1/d1_mini.html#lolin-d1-mini
+- HX711 load cell amplifier, https://cdn.sparkfun.com/datasheets/Sensors/ForceFlex/hx711_english.pdf
+- Adafruit ssd1306, https://github.com/adafruit/Adafruit_SSD1306
+- 4 Load cells, https://www.aliexpress.com/item/32839005317.html
+- Coffee machine, optional, freely selectable, Moccamaster recommended
+
 
 ## Photos
 
