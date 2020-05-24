@@ -326,3 +326,7 @@ See the workflow file [here](https://github.com/cxcorp/ele2-coffee-machine/blob/
 ## Sensor schematic
 
 ![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/schematic-v2.png)
+
+## Wiring diagram
+
+![](https://github.com/cxcorp/ele2-coffee-machine/blob/master/documentation/wiring_diagram.pdf)
