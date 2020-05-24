@@ -7,7 +7,7 @@ Coffee machine IoT project. Easily check the amount of coffee in the pan via a T
 * [Table of contents](#table-of-contents)
 * [Directories](#directories)
 * [Architecture](#architecture)
-* [How parts are connected](#connectios)
+* [How parts are connected](#how-parts-are-connected)
 * [Photos](#photos)
 * [Setting up the project](#setting-up-the-project)
     + [1. Install Docker](#1-install-docker)
