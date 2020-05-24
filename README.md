@@ -65,6 +65,7 @@ The project contains multiple components:
 - HX711 load cell amplifier, https://cdn.sparkfun.com/datasheets/Sensors/ForceFlex/hx711_english.pdf
 - Adafruit ssd1306, https://github.com/adafruit/Adafruit_SSD1306
 - 4 Load cells, https://www.aliexpress.com/item/32839005317.html
+- Jumper wires
 - Coffee machine, optional, freely selectable, Moccamaster recommended
 
 
