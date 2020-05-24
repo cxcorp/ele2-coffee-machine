@@ -53,6 +53,10 @@ The project contains multiple components:
 
 ![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/architecture-v2.png)
 
+## How the parts are connected
+
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/connections.png)
+
 ## Photos
 
 Click on an image to view the full-size image.
