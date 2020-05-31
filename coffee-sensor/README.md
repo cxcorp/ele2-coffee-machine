@@ -9,6 +9,7 @@
 * [Signing binaries](#signing-binaries)
 * [OTA](#ota)
 * [Configuration mode](#configuration-mode)
+	+ [Scale calibration](#scale-calibration)
 * [Config server assets](#config-server-assets)
 
 ## Parts
@@ -111,6 +112,12 @@ The public key used for verification is configured through `SigningKey.cpp`. A c
 
 If the sensor's reset button is clicked twice within two seconds, the server starts in configuration mode.
 In maintenance mode, the sensor starts its own WiFi network named `OH sensor admin` with the passphrase `12345678`. Connecting to this WiFi access point and navigating to http://192.168.1.1/ opens the configuration portal, from which the WiFi client credentials and WebSocket URL can be specified.
+
+### Scale calibration
+
+The sacle calibration can be accessed from the configuration portal. The portal has instructions how to calibrate the sensor as seen below.
+
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/calibration-window.png)
 
 ## Config server assets
 
