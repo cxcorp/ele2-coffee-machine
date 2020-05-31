@@ -145,7 +145,7 @@ After running this command, the database will create the user and the database, 
 
 When the database is ready, open a shell in its container with `docker-compose exec db sh` and run `psql -U coffee coffee` to open a database client. Then, run the following SQL to create the table we need:
 
-```
+```sql
 CREATE TABLE weight (
   id BIGSERIAL PRIMARY KEY,
   timestamp TIMESTAMP WITH TIME ZONE,
