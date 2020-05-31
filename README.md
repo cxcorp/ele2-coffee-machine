@@ -214,6 +214,9 @@ Here the values for `PG_` are the same as previously configured for Node-RED.
 
 To get the Telegram Bot API token, you need to register an account with [Telegram](https://telegram.org/), then start a conversation with `@BotFather` and use the `/newbot` command to create a bot and get a token.
 
+### 4.1 How to use the Telegram bot
+
+
 ### 5. OTA update server
 
 The OTA update server uses Google Drive as file storage, and for specifying the latest firmware version and filename. First, we need to create a Drive folder for the firmware, a Sheets spreadsheet where we store the latest version and filename, and a Google Cloud [Service account](https://cloud.google.com/iam/docs/service-accounts) with which we grant access to the server to these resources.
