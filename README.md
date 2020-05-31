@@ -216,6 +216,9 @@ To get the Telegram Bot API token, you need to register an account with [Telegra
 
 ### 4.1 How to use the Telegram bot
 
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/status.jpeg)
+
+![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/no_information.jpeg)
 
 ### 5. OTA update server
 
