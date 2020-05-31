@@ -13,6 +13,9 @@
 
 ## Parts
 
+- Microcontroller LOLIN D1 mini
+	- (https://docs.wemos.cc/en/latest/d1/d1_mini.html)
+
 - Generic 128x64 OLED display module SSD1306 with I2C pinout
     - https://www.addicore.com/OLED-128x64-Monochrome-p/ad304.htm
     * OLED (probably): https://www.datasheets.com/en/datasheet/ug-2864hlbeg01-wisechip-semiconductor-inc-71567627
