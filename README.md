@@ -326,16 +326,13 @@ DigitalOcean has a good walkthrough on doing this with either [nginx](https://ww
 Now that all of the supporting infrastructure is configured, it's time to configure the sensor.
 This part is covered by the [`coffee-sensor` README](https://github.com/cxcorp/ele2-coffee-machine/tree/master/coffee-sensor).
 
-
-#### TODO: knex migrations for Bot
-
 ### TODO
 
 - [x] docker & docker-compose:
-- [ ] surrounding infrastructure
-    - [ ] bot
+- [x] surrounding infrastructure
+    - [x] bot
         - [x] botfather token
-        - [ ] db migrations
+        - [x] db migrations
     - [x] update server
         - [x] self-signed certificate
         - [x] google cloud service account
@@ -353,9 +350,9 @@ This part is covered by the [`coffee-sensor` README](https://github.com/cxcorp/e
 - [ ] sensor
     - [x] dependencies
     - [x] setting up board in IDE
-    - [ ] ota url, https, fingerprint
-    - [ ] public.key, private.key
-    - [ ] versioning: semver
+    - [x] ota url, https, fingerprint
+    - [x] public.key, private.key
+    - [x] versioning: semver
     - [ ] ws url
     - [ ] scale calibration
     - [ ] tare
