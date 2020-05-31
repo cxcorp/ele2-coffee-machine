@@ -29,7 +29,8 @@ Coffee machine IoT project. Easily check the amount of coffee in the pan via a T
         - [5.6 - Configure environment variables](#56-configure-environment-variables)
         - [5.7 - Start the server](#57-start-the-server)
         - [5.8 - MAC whitelist](#58-mac-whitelist)
-    - [TODO: knex migrations for Bot](#todo--knex-migrations-for-bot)
+        - [5.9 Self-signed HTTPS certificate (*production*)](#59-self-signed-https-certificate-production)
+    + [6. Sensor](#6-sensor)
     + [TODO](#todo)
 * [Automatic deployment (CI/CD)](#automatic-deployment-cicd)
 * [Sensor schematic](#sensor-schematic)
@@ -141,6 +142,16 @@ After this is done, you can start the database by doing
 Here the `up` command instructs docker-compose to find a service from the `docker-compose.yml` file named `db`, and to start it in the background (`-d`) so that we don't need to keep the terminal open.
 
 After running this command, the database will create the user and the database, and then restart. You can view its progress by doing `docker-compose logs -f db`, and exit the logs view with `CTRL-C`.
+
+When the database is ready, open a shell in its container with `docker-compose exec db sh` and run `psql -U coffee coffee` to open a database client. Then, run the following SQL to create the table we need:
+
+```
+CREATE TABLE weight (
+  id BIGSERIAL PRIMARY KEY,
+  timestamp TIMESTAMP WITH TIME ZONE,
+  weight DECIMAL
+);
+```
 
 #### 3.2 Node-RED
 
@@ -300,6 +311,22 @@ After we configure the sensor itself, it will try to fetch firmware updates befo
 
 **After changing environment variables on an already running service, you need to do `docker-compose up -d <service name>` again to restart it with the new variables.**
 
+#### 5.9 Self-signed HTTPS certificate (*production*)
+
+If you're setting up locally, skip this step.
+
+The OTA update server itself does not deal with HTTPS, as it was designed with the fact in mind that it was going to be placed behind a [TLS termination proxy](https://en.wikipedia.org/wiki/TLS_termination_proxy) (we used nginx). TLS termination is a fancy word for "a proxy in front of your web application which serves HTTPS to clients but talks to your application over HTTP".
+
+If you want to use HTTPS, which you should always use in production, you'll want to generate a self-signed certificate, or build yourself a certificate renewal process which also makes sure that the devices have the new certificate fingerprint. It's easier to generate a self-signed certificate.
+
+DigitalOcean has a good walkthrough on doing this with either [nginx](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-nginx-in-ubuntu-18-04) or [apache2](https://www.digitalocean.com/community/tutorials/how-to-create-a-self-signed-ssl-certificate-for-apache-in-ubuntu-16-04). After that, look up how to reverse proxy traffic from nginx or apache2 to your application.
+
+### 6 Sensor
+
+Now that all of the supporting infrastructure is configured, it's time to configure the sensor.
+This part is covered by the [`coffee-sensor` README](https://github.com/cxcorp/ele2-coffee-machine/tree/master/coffee-sensor).
+
+
 #### TODO: knex migrations for Bot
 
 ### TODO
@@ -309,8 +336,8 @@ After we configure the sensor itself, it will try to fetch firmware updates befo
     - [ ] bot
         - [x] botfather token
         - [ ] db migrations
-    - [ ] update server
-        - [ ] self-signed certificate
+    - [x] update server
+        - [x] self-signed certificate
         - [x] google cloud service account
             - json key
             - drive api
