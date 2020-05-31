@@ -216,7 +216,11 @@ To get the Telegram Bot API token, you need to register an account with [Telegra
 
 ### 4.1 How to use the Telegram bot
 
+To you the Telegram bot created it needs to be searched from Telegram search bar. In this case we named our bot at Kahvibotti. When the status of the coffee machine is needed, type "/status" to the bot chat and it returns the last measured weight and time when measued. It also returns a plot from the last 30min of measured data. 
+
 ![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/status.jpeg)
+
+If the coffee machine is unable to send data for 30 minutes to the cloud, the bot gives an error message. The picture has been made during the language update.
 
 ![](https://github.com/cxcorp/ele2-coffee-machine/raw/master/documentation/no_information.jpeg)
 
