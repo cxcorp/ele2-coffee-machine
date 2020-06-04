@@ -13,7 +13,7 @@ services:
       - "./nodered-data:/data"
 
   ota-update-server:
-    image: registry.cxcorp.systems/ota-update-server
+    image: registry.cxcorp.systems/ota-update-server:latest
     build: ./ota-update-server
     restart: unless-stopped
     init: true
@@ -34,7 +34,7 @@ services:
       - ./ota-update-server-data/firmware:/app/firmware:ro
 
   bot:
-    image: registry.cxcorp.systems/coffee-system-bot
+    image: registry.cxcorp.systems/coffee-system-bot:latest
     build: ./bot
     restart: unless-stopped
     init: true
